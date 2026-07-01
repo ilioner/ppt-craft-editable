@@ -266,3 +266,7 @@ python3 scripts/preflight.py
 本技能部分功能参考于：
 
 - `ppt-image-first`
+
+- - 致谢
+
+本项目感谢 Linux.do 社区 对开源分享与传播的推动。
