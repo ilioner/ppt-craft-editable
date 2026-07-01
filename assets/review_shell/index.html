@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPT Review Workspace</title>
+  <style>
+    :root {
+      --bg: #f2efe9;
+      --bg-accent: #e6ded1;
+      --panel: rgba(255, 250, 242, 0.86);
+      --panel-strong: rgba(255, 252, 247, 0.96);
+      --line: rgba(73, 56, 34, 0.14);
+      --text: #201a13;
+      --muted: #6d5d4c;
+      --accent: #bc5b28;
+      --accent-soft: #f2d6c6;
+      --shadow: 0 16px 50px rgba(75, 46, 16, 0.12);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --max-width: 1520px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: "Segoe UI Variable Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 197, 147, 0.56), transparent 26%),
+        radial-gradient(circle at top right, rgba(130, 184, 255, 0.22), transparent 22%),
+        linear-gradient(180deg, #faf6f0 0%, var(--bg) 40%, #efe8dc 100%);
+      min-height: 100vh;
+    }
+
+    button, textarea, select, input { font: inherit; }
+    .shell {
+      width: min(calc(100% - 32px), var(--max-width));
+      margin: 24px auto 56px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      background:
+        linear-gradient(135deg, rgba(255, 251, 245, 0.96), rgba(246, 237, 226, 0.86)),
+        linear-gradient(135deg, rgba(255, 140, 87, 0.12), rgba(96, 162, 255, 0.08));
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -60px -90px auto;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(188, 91, 40, 0.2), rgba(188, 91, 40, 0));
+      pointer-events: none;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .hero-title { max-width: 860px; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(188, 91, 40, 0.15);
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 14px 0 10px;
+      font-size: clamp(34px, 6vw, 64px);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+    }
+
+    .intro {
+      margin: 0;
+      max-width: 860px;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .hero-notes {
+      display: grid;
+      gap: 12px;
+      min-width: 260px;
+      flex: 0 0 320px;
+    }
+
+    .note-card {
+      padding: 16px 18px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid var(--line);
+    }
+
+    .note-label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .note-value {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .summary-bar {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .summary-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.74);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .workspace {
+      margin-top: 0;
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr) 360px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .sidebar-panel,
+    .action-panel {
+      height: auto;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .stage-panel {
+      align-self: start;
+      height: auto;
+    }
+
+    .sidebar-panel .panel-body,
+    .action-panel .panel-body {
+      min-height: 0;
+    }
+
+    .sidebar-panel .panel-body {
+      padding: 10px 10px 14px;
+      grid-template-rows: minmax(0, 1fr) auto;
+    }
+
+    .action-panel .panel-body {
+      grid-template-rows: minmax(0, 1fr) auto;
+      min-height: 0;
+      padding-bottom: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(250, 245, 237, 0.92));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.52);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: -0.03em;
+    }
+
+    .panel-subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .panel-body {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .page-list {
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: grid;
+      gap: 8px;
+      padding: 2px 3px 2px 1px;
+      align-content: start;
+    }
+
+    .page-list::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .page-list::-webkit-scrollbar-thumb {
+      background: rgba(126, 102, 72, 0.28);
+      border-radius: 999px;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+    }
+
+    .page-button {
+      width: 100%;
+      padding: 0;
+      border-radius: 18px;
+      border: 1px solid transparent;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .page-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .page-button.active .page-thumb-card {
+      border-color: rgba(188, 91, 40, 0.58);
+      box-shadow: 0 0 0 3px rgba(188, 91, 40, 0.14), 0 14px 26px rgba(52, 34, 9, 0.12);
+      background: rgba(255, 250, 244, 0.98);
+    }
+
+    .page-thumb-entry {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+    }
+
+    .page-order {
+      padding-top: 14px;
+      text-align: center;
+      font-size: 24px;
+      line-height: 1;
+      color: #3e2b1a;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .page-thumb-card {
+      border-radius: 16px;
+      border: 1px solid rgba(73, 56, 34, 0.12);
+      background: rgba(255, 255, 255, 0.86);
+      box-shadow: 0 8px 14px rgba(52, 34, 9, 0.07);
+      overflow: hidden;
+      transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    .page-thumb-image {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      background: linear-gradient(135deg, #d9ccb7, #f7f0e5);
+      border-bottom: 1px solid rgba(73, 56, 34, 0.1);
+    }
+
+    .page-thumb-meta {
+      padding: 8px 10px 10px;
+      display: grid;
+      gap: 3px;
+    }
+
+    .page-code {
+      display: inline-flex;
+      width: fit-content;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: #6c2d08;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .page-title {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.35;
+      color: var(--text);
+    }
+
+    .page-meta {
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .page-count {
+      font-size: 11px;
+      line-height: 1.4;
+      color: var(--muted);
+    }
+
+    .stage-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .segmented {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tool-chip {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.85);
+      color: var(--muted);
+      padding: 10px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .tool-chip.active {
+      color: #6c2d08;
+      border-color: rgba(188, 91, 40, 0.45);
+      background: var(--accent-soft);
+    }
+
+    .inline-field {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.74);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .inline-field input[type="range"] {
+      width: 110px;
+      accent-color: var(--accent);
+    }
+
+    .action-scroll {
+      min-height: 0;
+      overflow-y: auto;
+      display: grid;
+      align-content: start;
+      gap: 14px;
+      padding-right: 4px;
+    }
+
+    .action-row {
+      display: grid;
+      gap: 12px;
+    }
+
+    .action-footer {
+      display: grid;
+      gap: 10px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(73, 56, 34, 0.1);
+      background: linear-gradient(180deg, rgba(250,245,237,0), rgba(250,245,237,0.98) 26%);
+    }
+
+    select, textarea {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.88);
+      color: var(--text);
+      padding: 12px 14px;
+      resize: vertical;
+    }
+
+    textarea {
+      min-height: 110px;
+      line-height: 1.6;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .primary,
+    .secondary,
+    .ghost {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 11px 14px;
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .primary:hover,
+    .secondary:hover,
+    .ghost:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 20px rgba(52, 34, 9, 0.12);
+    }
+
+    .primary {
+      background: linear-gradient(180deg, #cc6f3d, #b95725);
+      color: #fff9f5;
+      border-color: rgba(116, 47, 13, 0.22);
+    }
+
+    .secondary {
+      background: rgba(255, 255, 255, 0.86);
+      color: var(--text);
+    }
+
+    .ghost {
+      background: rgba(255, 255, 255, 0.5);
+      color: var(--muted);
+    }
+
+    .stage-frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, #d9ccb7, #f7f0e5);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+      cursor: crosshair;
+      touch-action: none;
+    }
+
+    .stage-image,
+    .stage-canvas,
+    .stage-notes {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .stage-image {
+      object-fit: cover;
+      display: block;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .stage-canvas {
+      z-index: 2;
+    }
+
+    .stage-notes {
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .annotation-pin {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(188, 91, 40, 0.94);
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+    }
+
+    .stage-caption {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 12px;
+    }
+
+    .note-list {
+      display: grid;
+      gap: 10px;
+      max-height: 280px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .note-item {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.82);
+      display: grid;
+      gap: 8px;
+    }
+
+    .note-item-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .note-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: #6c2d08;
+      font-size: 12px;
+    }
+
+    .note-remove {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0;
+    }
+
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    @media (max-width: 1280px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .shell {
+        width: min(calc(100% - 20px), var(--max-width));
+        margin-top: 10px;
+      }
+
+      .hero {
+        padding: 24px;
+        border-radius: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="workspace">
+      <div class="panel sidebar-panel">
+        <div class="panel-head">
+          <h2 class="panel-title">页面缩略图</h2>
+          <p class="panel-subtitle">像 WPS 一样先看缩略图选页；图片多时，这一栏内部滚动。</p>
+        </div>
+        <div class="panel-body">
+          <div class="page-list" id="pageList"></div>
+          <div class="button-row">
+            <button class="secondary" type="button" id="clearStorageButton">清空本地缓存</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel stage-panel">
+        <div class="panel-head">
+          <h2 class="panel-title" id="stageTitle">页面评审</h2>
+          <p class="panel-subtitle" id="stageSubtitle">点击左侧页面开始。</p>
+        </div>
+        <div class="panel-body">
+          <div class="stage-toolbar">
+            <div class="segmented" id="toolGroup">
+              <button class="tool-chip active" type="button" data-tool="pen">画笔</button>
+              <button class="tool-chip" type="button" data-tool="rect">矩形</button>
+              <button class="tool-chip" type="button" data-tool="note">注释点</button>
+            </div>
+            <label class="inline-field">线宽
+              <input type="range" min="2" max="12" step="1" value="4" id="strokeWidthInput">
+            </label>
+            <label class="inline-field">颜色
+              <input type="color" value="#bc5b28" id="strokeColorInput">
+            </label>
+          </div>
+
+          <div class="stage-frame" id="stageFrame" aria-label="评审画布区域">
+            <img class="stage-image" id="stageImage" alt="当前页面预览">
+            <canvas class="stage-canvas" id="stageCanvas"></canvas>
+            <div class="stage-notes" id="stageNotes"></div>
+          </div>
+          <div class="stage-caption">
+            <div id="stageHint">提示：矩形和画笔直接画；注释点模式下点击页面后输入说明。</div>
+            <div id="draftStatus">草稿已自动保存在浏览器缓存中。</div>
+          </div>
+          <div class="button-row">
+            <button class="secondary" type="button" id="undoButton">撤销上一步</button>
+            <button class="ghost" type="button" id="clearPageButton">清空本页标注</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel action-panel">
+        <div class="panel-head">
+          <h2 class="panel-title">本页动作与说明</h2>
+          <p class="panel-subtitle">这里的内容会和图上标注坐标一起进入提交 payload，图片由 agent 本地还原。</p>
+        </div>
+        <div class="panel-body">
+          <div class="action-scroll">
+            <div class="action-row">
+              <label>
+                <span class="note-label">建议动作</span>
+                <select id="requestedActionSelect">
+                  <option value="edit-local">局部编辑</option>
+                  <option value="regenerate">整页重生成</option>
+                  <option value="note-only">仅记录意见</option>
+                </select>
+              </label>
+              <label>
+                <span class="note-label">本页总评</span>
+                <textarea id="pageCommentInput" placeholder="例如：这页整体不错，但右上区域太空，主标题压得不够稳。"></textarea>
+              </label>
+            </div>
+
+            <div>
+              <span class="note-label">定位注释</span>
+              <div class="note-list" id="noteList"></div>
+            </div>
+          </div>
+
+          <div class="action-footer">
+            <div class="button-row">
+              <button class="primary" type="button" id="submitCurrentButton">复制当前页结果</button>
+              <button class="secondary" type="button" id="submitAllButton">复制全部页面结果</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <template id="noteItemTemplate">
+    <div class="note-item">
+      <div class="note-item-top">
+        <span class="note-pill"></span>
+        <button class="note-remove" type="button">删除</button>
+      </div>
+      <div class="note-text"></div>
+      <div class="page-meta note-position"></div>
+    </div>
+  </template>
+
+  <script>
+    const STORAGE_KEY = 'ppt-image-first-review-prototype-v1';
+
+    const sampleSlides = [
+      {
+        id: 'S01',
+        code: 'S01',
+        title: '首页｜研究答辩开场',
+        role: '首页',
+        image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23f7f1e7'/%3E%3Cstop offset='1' stop-color='%23d8e6f5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23bg)'/%3E%3Ccircle cx='1230' cy='160' r='250' fill='%23bc5b28' fill-opacity='.14'/%3E%3Crect x='100' y='100' width='1400' height='700' rx='42' fill='white' fill-opacity='.58' stroke='%239bb4cf' stroke-opacity='.34'/%3E%3Ctext x='160' y='235' font-size='34' fill='%23647586' font-family='Segoe UI, Arial, sans-serif'%3EAcademic Defense Prototype%3C/text%3E%3Ctext x='160' y='420' font-size='112' fill='%231f1a14' font-family='Segoe UI, Arial, sans-serif' font-weight='700'%3EREMOTE SENSING%3C/text%3E%3Ctext x='160' y='520' font-size='64' fill='%23324f70' font-family='Segoe UI, Arial, sans-serif' font-weight='600'%3ETemperature Profile Research%3C/text%3E%3Ctext x='160' y='650' font-size='36' fill='%236d5d4c' font-family='Segoe UI, Arial, sans-serif'%3ECommittee Review / 2026%3C/text%3E%3Cpath d='M980 610 C1120 480 1240 430 1400 360' stroke='%233b7bbd' stroke-width='8' fill='none' opacity='.45'/%3E%3Cpath d='M1010 660 C1170 590 1290 560 1440 520' stroke='%23bc5b28' stroke-width='8' fill='none' opacity='.34'/%3E%3C/svg%3E"
+      },
+      {
+        id: 'S02',
+        code: 'S02',
+        title: '目录页｜结构总览',
+        role: '目录页',
+        image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23edf4fb'/%3E%3Cstop offset='1' stop-color='%23f5ede2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23bg)'/%3E%3Crect x='100' y='90' width='1400' height='720' rx='42' fill='white' fill-opacity='.62' stroke='%23a9bdd5' stroke-opacity='.32'/%3E%3Ctext x='150' y='200' font-size='96' fill='%231f1a14' font-family='Segoe UI, Arial, sans-serif' font-weight='700'%3ECONTENTS%3C/text%3E%3Ctext x='152' y='252' font-size='28' fill='%23647586' font-family='Segoe UI, Arial, sans-serif'%3EStructure and decision path%3C/text%3E%3Cg fill='white' fill-opacity='.84'%3E%3Crect x='150' y='320' width='520' height='132' rx='28'/%3E%3Crect x='150' y='486' width='520' height='132' rx='28'/%3E%3Crect x='150' y='652' width='520' height='98' rx='28'/%3E%3Crect x='730' y='320' width='700' height='96' rx='28'/%3E%3Crect x='730' y='450' width='700' height='96' rx='28'/%3E%3Crect x='730' y='580' width='700' height='96' rx='28'/%3E%3C/g%3E%3Cg font-family='Segoe UI, Arial, sans-serif'%3E%3Ctext x='186' y='392' font-size='38' fill='%23324f70'%3E01 Background and Problem%3C/text%3E%3Ctext x='186' y='558' font-size='38' fill='%23324f70'%3E02 Method and Data%3C/text%3E%3Ctext x='186' y='713' font-size='34' fill='%23324f70'%3E03 Results / Conclusion%3C/text%3E%3Ctext x='770' y='380' font-size='30' fill='%236d5d4c'%3EResearch context, current gap, committee focus%3C/text%3E%3Ctext x='770' y='510' font-size='30' fill='%236d5d4c'%3EModel path, retrieval strategy, experiment setup%3C/text%3E%3Ctext x='770' y='640' font-size='30' fill='%236d5d4c'%3EValidation, comparison, implications and future work%3C/text%3E%3C/g%3E%3C/svg%3E"
+      },
+      {
+        id: 'S03',
+        code: 'S03',
+        title: '正文页｜关键结论承载',
+        role: '正文页',
+        image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23f5eee5'/%3E%3Cstop offset='1' stop-color='%23dce8f3'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23bg)'/%3E%3Crect x='100' y='90' width='1400' height='720' rx='42' fill='white' fill-opacity='.6' stroke='%23a3b8d0' stroke-opacity='.28'/%3E%3Ctext x='150' y='180' font-size='40' fill='%23647586' font-family='Segoe UI, Arial, sans-serif'%3EResult Snapshot%3C/text%3E%3Ctext x='150' y='270' font-size='84' fill='%231f1a14' font-family='Segoe UI, Arial, sans-serif' font-weight='700'%3ETemperature inversion is the main error source%3C/text%3E%3Crect x='150' y='340' width='720' height='350' rx='30' fill='white' fill-opacity='.82'/%3E%3Crect x='910' y='340' width='430' height='170' rx='30' fill='white' fill-opacity='.82'/%3E%3Crect x='910' y='540' width='430' height='150' rx='30' fill='white' fill-opacity='.76'/%3E%3Crect x='1365' y='340' width='90' height='350' rx='30' fill='%23dce8f3' fill-opacity='.9'/%3E%3Ctext x='190' y='412' font-size='34' fill='%23324f70' font-family='Segoe UI, Arial, sans-serif'%3E- Retrieval error rises sharply above 2.8km%3C/text%3E%3Ctext x='190' y='474' font-size='34' fill='%23324f70' font-family='Segoe UI, Arial, sans-serif'%3E- Humidity profile remains comparatively stable%3C/text%3E%3Ctext x='190' y='536' font-size='34' fill='%23324f70' font-family='Segoe UI, Arial, sans-serif'%3E- Boundary layer mismatch explains most deviation%3C/text%3E%3Cpath d='M220 650 C340 570 490 500 760 430' stroke='%23bc5b28' stroke-width='10' fill='none' opacity='.46'/%3E%3Ctext x='950' y='428' font-size='62' fill='%231f1a14' font-family='Segoe UI, Arial, sans-serif' font-weight='700'%3E31%25%3C/text%3E%3Ctext x='950' y='470' font-size='28' fill='%236d5d4c' font-family='Segoe UI, Arial, sans-serif'%3EMSE reduction after correction%3C/text%3E%3Ctext x='950' y='612' font-size='52' fill='%23324f70' font-family='Segoe UI, Arial, sans-serif' font-weight='700'%3ECommittee concern:%3C/text%3E%3Ctext x='950' y='654' font-size='28' fill='%236d5d4c' font-family='Segoe UI, Arial, sans-serif'%3EExplain why instability concentrates in the inversion layer%3C/text%3E%3C/svg%3E"
+      }
+    ];
+
+    const defaultState = {
+      selectedPageId: sampleSlides[0].id,
+      tool: 'pen',
+      strokeWidth: 4,
+      strokeColor: '#bc5b28',
+      pages: Object.fromEntries(sampleSlides.map(slide => [slide.id, {
+        requested_action: 'edit-local',
+        page_comment: '',
+        penStrokes: [],
+        rects: [],
+        notes: []
+      }]))
+    };
+
+    const pageList = document.getElementById('pageList');
+    const stageTitle = document.getElementById('stageTitle');
+    const stageSubtitle = document.getElementById('stageSubtitle');
+    const stageImage = document.getElementById('stageImage');
+    const stageFrame = document.getElementById('stageFrame');
+    const stageCanvas = document.getElementById('stageCanvas');
+    const stageNotes = document.getElementById('stageNotes');
+    const noteList = document.getElementById('noteList');
+    const noteItemTemplate = document.getElementById('noteItemTemplate');
+    const requestedActionSelect = document.getElementById('requestedActionSelect');
+    const pageCommentInput = document.getElementById('pageCommentInput');
+    const strokeWidthInput = document.getElementById('strokeWidthInput');
+    const strokeColorInput = document.getElementById('strokeColorInput');
+    const draftStatus = document.getElementById('draftStatus');
+    const stagePanel = document.querySelector('.stage-panel');
+    const sidebarPanel = document.querySelector('.sidebar-panel');
+    const actionPanel = document.querySelector('.action-panel');
+
+    const ctx = stageCanvas.getContext('2d');
+    let state = loadState();
+    let drawing = null;
+
+    function deepClone(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return deepClone(defaultState);
+        const parsed = JSON.parse(raw);
+        return {
+          ...deepClone(defaultState),
+          ...parsed,
+          pages: { ...deepClone(defaultState).pages, ...(parsed.pages || {}) }
+        };
+      } catch {
+        return deepClone(defaultState);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      draftStatus.textContent = `草稿已自动保存在浏览器缓存中 · ${new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+    }
+
+    function getCurrentSlide() {
+      return sampleSlides.find(slide => slide.id === state.selectedPageId) || sampleSlides[0];
+    }
+
+    function getPageState(pageId = state.selectedPageId) {
+      if (!state.pages[pageId]) {
+        state.pages[pageId] = deepClone(defaultState.pages[sampleSlides[0].id]);
+      }
+      return state.pages[pageId];
+    }
+
+    function renderPageList() {
+      pageList.innerHTML = sampleSlides.map((slide, index) => {
+        const pageState = getPageState(slide.id);
+        const count = pageState.notes.length + pageState.penStrokes.length + pageState.rects.length;
+        return `
+          <button class="page-button ${slide.id === state.selectedPageId ? 'active' : ''}" type="button" data-page-id="${slide.id}">
+            <div class="page-thumb-entry">
+              <div class="page-order">${index + 1}</div>
+              <div class="page-thumb-card">
+                <img class="page-thumb-image" src="${slide.image}" alt="${escapeHtml(slide.title)} 缩略图">
+                <div class="page-thumb-meta">
+                  <span class="page-code">${slide.code}</span>
+                  <span class="page-title">${slide.title}</span>
+                  <span class="page-meta">${slide.role}</span>
+                  <span class="page-count">${count} 条标注 / 图形</span>
+                </div>
+              </div>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function syncPanelHeights() {
+      const stageHeight = stagePanel.getBoundingClientRect().height;
+      if (!stageHeight) return;
+      sidebarPanel.style.height = `${stageHeight}px`;
+      actionPanel.style.height = `${stageHeight}px`;
+    }
+
+    function syncStageImageAspectRatio() {
+      if (!stageImage.naturalWidth || !stageImage.naturalHeight) return false;
+      stageFrame.style.aspectRatio = `${stageImage.naturalWidth} / ${stageImage.naturalHeight}`;
+      return true;
+    }
+
+    function resizeCanvas() {
+      const rect = stageFrame.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      stageCanvas.width = Math.round(rect.width * ratio);
+      stageCanvas.height = Math.round(rect.height * ratio);
+      stageCanvas.style.width = `${rect.width}px`;
+      stageCanvas.style.height = `${rect.height}px`;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      renderCanvas();
+      syncPanelHeights();
+    }
+
+    function toCanvasPoint(event) {
+      const rect = stageFrame.getBoundingClientRect();
+      return {
+        x: Math.min(Math.max((event.clientX - rect.left) / rect.width, 0), 1),
+        y: Math.min(Math.max((event.clientY - rect.top) / rect.height, 0), 1),
+        px: event.clientX - rect.left,
+        py: event.clientY - rect.top,
+        width: rect.width,
+        height: rect.height
+      };
+    }
+
+    function drawPenStroke(stroke, rect) {
+      if (!stroke.points.length) return;
+      ctx.beginPath();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = stroke.color;
+      ctx.lineWidth = stroke.width;
+      stroke.points.forEach((point, index) => {
+        const x = point.x * rect.width;
+        const y = point.y * rect.height;
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+
+    function drawRectMarkup(item, rect) {
+      ctx.beginPath();
+      ctx.strokeStyle = item.color;
+      ctx.lineWidth = item.width;
+      ctx.setLineDash([10, 8]);
+      ctx.strokeRect(item.x * rect.width, item.y * rect.height, item.w * rect.width, item.h * rect.height);
+      ctx.setLineDash([]);
+    }
+
+    function renderCanvas() {
+      const rect = stageFrame.getBoundingClientRect();
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      const pageState = getPageState();
+
+      pageState.penStrokes.forEach(stroke => drawPenStroke(stroke, rect));
+      pageState.rects.forEach(item => drawRectMarkup(item, rect));
+
+      if (drawing?.type === 'pen') {
+        drawPenStroke(drawing.stroke, rect);
+      }
+      if (drawing?.type === 'rect') {
+        drawRectMarkup(drawing.rect, rect);
+      }
+
+      renderNotes();
+    }
+
+    function getNoteMarker(index) {
+      const markers = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩'];
+      return markers[index] || String(index + 1);
+    }
+
+    function renderNotes() {
+      const pageState = getPageState();
+      stageNotes.innerHTML = pageState.notes.map((note, index) => `
+        <div class="annotation-pin" style="left:${note.x * 100}%; top:${note.y * 100}%" title="${escapeHtml(note.text)}">${getNoteMarker(index)}</div>
+      `).join('');
+    }
+
+    function renderNoteList() {
+      const pageState = getPageState();
+      noteList.innerHTML = '';
+      if (!pageState.notes.length) {
+        noteList.innerHTML = '<div class="page-meta">当前页还没有定位注释。</div>';
+        return;
+      }
+      pageState.notes.forEach((note, index) => {
+        const node = noteItemTemplate.content.firstElementChild.cloneNode(true);
+        node.querySelector('.note-pill').textContent = `注释 ${getNoteMarker(index)}`;
+        node.querySelector('.note-text').textContent = note.text;
+        node.querySelector('.note-position').textContent = `位置参考：图上标记 ${getNoteMarker(index)}`;
+        node.querySelector('.note-remove').dataset.noteId = note.id;
+        noteList.appendChild(node);
+      });
+    }
+
+    function renderStage() {
+      const slide = getCurrentSlide();
+      const pageState = getPageState();
+      stageTitle.textContent = `${slide.code} · ${slide.title}`;
+      stageSubtitle.textContent = `${slide.role} · 在图上直接圈、框、加注释点，然后写本页总评。`;
+      stageImage.src = slide.image;
+      stageImage.alt = slide.title;
+      if (stageImage.complete) {
+        syncStageImageAspectRatio();
+      }
+      requestedActionSelect.value = pageState.requested_action;
+      pageCommentInput.value = pageState.page_comment;
+      renderNoteList();
+      renderPageList();
+      resizeCanvas();
+      syncToolUI();
+    }
+
+    function syncToolUI() {
+      document.querySelectorAll('[data-tool]').forEach(button => {
+        button.classList.toggle('active', button.dataset.tool === state.tool);
+      });
+      strokeWidthInput.value = state.strokeWidth;
+      strokeColorInput.value = state.strokeColor;
+    }
+
+    function switchPage(pageId) {
+      state.selectedPageId = pageId;
+      saveState();
+      renderStage();
+    }
+
+    function beginPen(point) {
+      drawing = {
+        type: 'pen',
+        stroke: {
+          id: crypto.randomUUID(),
+          color: state.strokeColor,
+          width: state.strokeWidth,
+          points: [{ x: point.x, y: point.y }]
+        }
+      };
+    }
+
+    function beginRect(point) {
+      drawing = {
+        type: 'rect',
+        origin: point,
+        rect: {
+          id: crypto.randomUUID(),
+          color: state.strokeColor,
+          width: state.strokeWidth,
+          x: point.x,
+          y: point.y,
+          w: 0,
+          h: 0
+        }
+      };
+    }
+
+    function updateDrawing(point) {
+      if (!drawing) return;
+      if (drawing.type === 'pen') {
+        drawing.stroke.points.push({ x: point.x, y: point.y });
+        renderCanvas();
+      }
+      if (drawing.type === 'rect') {
+        const x1 = Math.min(drawing.origin.x, point.x);
+        const y1 = Math.min(drawing.origin.y, point.y);
+        const x2 = Math.max(drawing.origin.x, point.x);
+        const y2 = Math.max(drawing.origin.y, point.y);
+        drawing.rect.x = x1;
+        drawing.rect.y = y1;
+        drawing.rect.w = x2 - x1;
+        drawing.rect.h = y2 - y1;
+        renderCanvas();
+      }
+    }
+
+    function endDrawing() {
+      if (!drawing) return;
+      const pageState = getPageState();
+      if (drawing.type === 'pen' && drawing.stroke.points.length > 1) {
+        pageState.penStrokes.push(drawing.stroke);
+      }
+      if (drawing.type === 'rect' && drawing.rect.w > 0.003 && drawing.rect.h > 0.003) {
+        pageState.rects.push(drawing.rect);
+      }
+      drawing = null;
+      saveState();
+      renderStage();
+    }
+
+    function addNote(point) {
+      const text = window.prompt('请输入这条定位批注：');
+      if (!text || !text.trim()) return;
+      const pageState = getPageState();
+      pageState.notes.push({
+        id: crypto.randomUUID(),
+        x: point.x,
+        y: point.y,
+        text: text.trim()
+      });
+      saveState();
+      renderStage();
+    }
+
+    function undoLast() {
+      const pageState = getPageState();
+      if (pageState.penStrokes.length) pageState.penStrokes.pop();
+      else if (pageState.rects.length) pageState.rects.pop();
+      else if (pageState.notes.length) pageState.notes.pop();
+      saveState();
+      renderStage();
+    }
+
+    function clearCurrentPage() {
+      state.pages[state.selectedPageId] = {
+        requested_action: 'edit-local',
+        page_comment: '',
+        penStrokes: [],
+        rects: [],
+        notes: []
+      };
+      saveState();
+      renderStage();
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function roundCoordinate(value) {
+      return Number(Math.min(Math.max(value, 0), 1).toFixed(4));
+    }
+
+    function roundStrokeWidth(value) {
+      return Number(Math.max(Number(value) || 0, 0).toFixed(2));
+    }
+
+    function simplifyPoints(points, maxPoints = 120) {
+      if (!points.length) return [];
+      const source = points.length <= maxPoints
+        ? points
+        : Array.from({ length: maxPoints }, (_, index) => {
+            const sourceIndex = Math.round(index * (points.length - 1) / (maxPoints - 1));
+            return points[sourceIndex];
+          });
+      const rounded = source.map(point => ({
+        x: roundCoordinate(point.x),
+        y: roundCoordinate(point.y)
+      }));
+      return rounded.filter((point, index) => {
+        if (index === 0) return true;
+        const prev = rounded[index - 1];
+        return point.x !== prev.x || point.y !== prev.y;
+      });
+    }
+
+    function buildMarkupPayload(pageState) {
+      return {
+        coordinate_space: 'normalized_0_1',
+        render_instruction: 'Agent should render this markup onto the local source slide image before retouch/regeneration.',
+        notes: pageState.notes.map((note, index) => ({
+          marker: getNoteMarker(index),
+          x: roundCoordinate(note.x),
+          y: roundCoordinate(note.y),
+          comment: note.text
+        })),
+        rects: pageState.rects.map(item => ({
+          x: roundCoordinate(item.x),
+          y: roundCoordinate(item.y),
+          w: roundCoordinate(item.w),
+          h: roundCoordinate(item.h),
+          color: item.color,
+          width: roundStrokeWidth(item.width)
+        })),
+        pen_strokes: pageState.penStrokes.map(stroke => ({
+          color: stroke.color,
+          width: roundStrokeWidth(stroke.width),
+          points: simplifyPoints(stroke.points)
+        })).filter(stroke => stroke.points.length > 1)
+      };
+    }
+
+    async function buildPayload(mode) {
+      const targetSlides = mode === 'current' ? [getCurrentSlide()] : sampleSlides;
+      const pages = [];
+      for (const slide of targetSlides) {
+        const pageState = getPageState(slide.id);
+        const trimmedComment = (pageState.page_comment || '').trim();
+        const hasNotes = pageState.notes.length > 0;
+        const hasPenMarks = pageState.penStrokes.length > 0;
+        const hasRectMarks = pageState.rects.length > 0;
+        const hasVisualMarkup = hasNotes || hasPenMarks || hasRectMarks;
+        const hasPageComment = Boolean(trimmedComment);
+        const hasMeaningfulFeedback = hasVisualMarkup || hasPageComment;
+
+        if (!hasMeaningfulFeedback) {
+          continue;
+        }
+
+        const pagePayload = {
+          page_id: slide.id,
+          page_code: slide.code,
+          title: slide.title,
+          page_role: slide.role,
+          requested_action: pageState.requested_action,
+          page_comment: trimmedComment,
+          note_comments: pageState.notes.map((note, index) => ({
+            marker: getNoteMarker(index),
+            comment: note.text
+          }))
+        };
+
+        if (hasVisualMarkup) {
+          pagePayload.markup = buildMarkupPayload(pageState);
+        }
+
+        pages.push(pagePayload);
+      }
+
+      return {
+        schema_version: 'review-shell-v2',
+        markup_transport: 'coordinates_only',
+        agent_instruction: 'Before retouching or regenerating pages, render each page.markup onto the corresponding local slide image with scripts/render_review_markup.py, then use the marked image plus separate textual comments as the edit reference.',
+        submitted_at: new Date().toISOString(),
+        mode,
+        page_count: pages.length,
+        pages
+      };
+    }
+
+    async function copyPayload(mode) {
+      try {
+        const payload = await buildPayload(mode);
+        const json = JSON.stringify(payload, null, 2);
+        await navigator.clipboard.writeText(json);
+        draftStatus.textContent = `${mode === 'current' ? '当前页' : '全部页面'}结果已复制到剪贴板。回到当前对话粘贴发送即可。`;
+      } catch (error) {
+        draftStatus.textContent = error?.message || '复制失败，请检查浏览器是否允许写入剪贴板。';
+      }
+    }
+
+    pageList.addEventListener('click', event => {
+      const button = event.target.closest('[data-page-id]');
+      if (!button) return;
+      switchPage(button.dataset.pageId);
+    });
+
+    document.getElementById('toolGroup').addEventListener('click', event => {
+      const button = event.target.closest('[data-tool]');
+      if (!button) return;
+      state.tool = button.dataset.tool;
+      saveState();
+      syncToolUI();
+    });
+
+    strokeWidthInput.addEventListener('input', () => {
+      state.strokeWidth = Number(strokeWidthInput.value);
+      saveState();
+    });
+
+    strokeColorInput.addEventListener('input', () => {
+      state.strokeColor = strokeColorInput.value;
+      saveState();
+    });
+
+    requestedActionSelect.addEventListener('change', () => {
+      getPageState().requested_action = requestedActionSelect.value;
+      saveState();
+      renderPageList();
+    });
+
+    pageCommentInput.addEventListener('input', () => {
+      getPageState().page_comment = pageCommentInput.value;
+      saveState();
+    });
+
+    noteList.addEventListener('click', event => {
+      const button = event.target.closest('[data-note-id]');
+      if (!button) return;
+      const pageState = getPageState();
+      pageState.notes = pageState.notes.filter(note => note.id !== button.dataset.noteId);
+      saveState();
+      renderStage();
+    });
+
+    stageFrame.addEventListener('pointerdown', event => {
+      const point = toCanvasPoint(event);
+      if (state.tool === 'note') {
+        addNote(point);
+        return;
+      }
+      stageCanvas.setPointerCapture(event.pointerId);
+      if (state.tool === 'pen') beginPen(point);
+      if (state.tool === 'rect') beginRect(point);
+    });
+
+    stageFrame.addEventListener('pointermove', event => {
+      if (!drawing) return;
+      updateDrawing(toCanvasPoint(event));
+    });
+
+    stageFrame.addEventListener('pointerup', () => endDrawing());
+    stageFrame.addEventListener('pointercancel', () => endDrawing());
+
+    document.getElementById('undoButton').addEventListener('click', undoLast);
+    document.getElementById('clearPageButton').addEventListener('click', clearCurrentPage);
+    document.getElementById('submitCurrentButton').addEventListener('click', () => copyPayload('current'));
+    document.getElementById('submitAllButton').addEventListener('click', () => copyPayload('all'));
+
+    document.getElementById('clearStorageButton').addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY);
+      state = deepClone(defaultState);
+      renderStage();
+      draftStatus.textContent = '本地缓存已清空。';
+    });
+
+    window.addEventListener('resize', resizeCanvas);
+    stageImage.addEventListener('load', () => {
+      syncStageImageAspectRatio();
+      resizeCanvas();
+    });
+
+    renderPageList();
+    renderStage();
+    syncPanelHeights();
+  </script>
+</body>
+</html>

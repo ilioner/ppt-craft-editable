@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PPT Style Preview</title>
+  <style>
+    :root {
+      --bg: #f2efe9;
+      --bg-accent: #e6ded1;
+      --panel: rgba(255, 250, 242, 0.86);
+      --panel-strong: rgba(255, 252, 247, 0.96);
+      --line: rgba(73, 56, 34, 0.14);
+      --text: #201a13;
+      --muted: #6d5d4c;
+      --accent: #bc5b28;
+      --accent-soft: #f2d6c6;
+      --shadow: 0 16px 50px rgba(75, 46, 16, 0.12);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --max-width: 1480px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: "Segoe UI Variable Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 197, 147, 0.56), transparent 26%),
+        radial-gradient(circle at top right, rgba(130, 184, 255, 0.22), transparent 22%),
+        linear-gradient(180deg, #faf6f0 0%, var(--bg) 40%, #efe8dc 100%);
+      min-height: 100vh;
+    }
+
+    button { font: inherit; }
+
+    .shell {
+      width: min(calc(100% - 32px), var(--max-width));
+      margin: 24px auto 56px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      background:
+        linear-gradient(135deg, rgba(255, 251, 245, 0.96), rgba(246, 237, 226, 0.86)),
+        linear-gradient(135deg, rgba(255, 140, 87, 0.12), rgba(96, 162, 255, 0.08));
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -60px -90px auto;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(188, 91, 40, 0.2), rgba(188, 91, 40, 0));
+      pointer-events: none;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .hero-title {
+      max-width: 860px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(188, 91, 40, 0.15);
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 14px 0 10px;
+      font-size: clamp(34px, 6vw, 64px);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+    }
+
+    .intro {
+      margin: 0;
+      max-width: 860px;
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .hero-notes {
+      display: grid;
+      gap: 12px;
+      min-width: 260px;
+      flex: 0 0 300px;
+    }
+
+    .note-card {
+      padding: 16px 18px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid var(--line);
+    }
+
+    .note-label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .note-value {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .summary-bar {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .summary-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.74);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .gallery {
+      margin-top: 24px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .scheme {
+      overflow: hidden;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(250, 245, 237, 0.92));
+      box-shadow: var(--shadow);
+    }
+
+    .scheme-head {
+      padding: 20px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .scheme-main {
+      min-width: 0;
+    }
+
+    .scheme-topline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .scheme-code {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      color: #6c2d08;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .scheme-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.74);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .scheme-title {
+      margin: 0;
+      font-size: clamp(22px, 3vw, 30px);
+      letter-spacing: -0.03em;
+    }
+
+    .scheme-subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+      max-width: 900px;
+    }
+
+    .scheme-body {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 22px;
+      border-top: 1px solid var(--line);
+      padding: 22px;
+      background: rgba(255, 252, 247, 0.56);
+    }
+
+    .meta-panel {
+      padding: 20px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .meta-section + .meta-section {
+      margin-top: 18px;
+    }
+
+    .meta-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+
+    .meta-value {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+
+    .preview-card {
+      min-width: 0;
+    }
+
+    .preview-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .preview-button {
+      width: 100%;
+      display: block;
+      padding: 0;
+      cursor: pointer;
+      border: 0;
+      border-radius: 18px;
+      background: transparent;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 12px 26px rgba(52, 34, 9, 0.12);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .preview-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 34px rgba(52, 34, 9, 0.16);
+    }
+
+    .preview-button::after {
+      content: "点击放大";
+      position: absolute;
+      inset: auto 12px 12px auto;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(18, 14, 10, 0.76);
+      color: #fff7f2;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      opacity: 0;
+      transition: opacity 180ms ease;
+    }
+
+    .preview-button:hover::after {
+      opacity: 1;
+    }
+
+    .preview-image {
+      width: 100%;
+      display: block;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      background: linear-gradient(135deg, #d9ccb7, #f7f0e5);
+    }
+
+    .preview-caption {
+      margin-top: 8px;
+      padding: 0 2px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: rgba(18, 14, 10, 0.72);
+      backdrop-filter: blur(10px);
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox-panel {
+      width: min(1380px, 100%);
+      max-height: calc(100vh - 44px);
+      overflow: hidden;
+      border-radius: 28px;
+      background: rgba(255, 249, 242, 0.98);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+    }
+
+    .lightbox-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .lightbox-title {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.03em;
+    }
+
+    .lightbox-subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .lightbox-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .icon-button {
+      cursor: pointer;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--text);
+      font-size: 18px;
+    }
+
+    .lightbox-body {
+      padding: 20px;
+      overflow: auto;
+      max-height: calc(100vh - 144px);
+    }
+
+    .lightbox-stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 260px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .lightbox-image-wrap {
+      overflow: hidden;
+      border-radius: 22px;
+      background: #f2e8db;
+      border: 1px solid var(--line);
+    }
+
+    .lightbox-image {
+      width: 100%;
+      display: block;
+      background: #efe4d4;
+    }
+
+    .lightbox-side {
+      display: grid;
+      gap: 10px;
+    }
+
+    .thumb-button {
+      display: block;
+      padding: 0;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.82);
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .thumb-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 18px rgba(52, 34, 9, 0.1);
+    }
+
+    .thumb-button.active {
+      border-color: rgba(188, 91, 40, 0.55);
+      box-shadow: 0 0 0 3px rgba(188, 91, 40, 0.12);
+    }
+
+    .thumb-image {
+      width: 100%;
+      display: block;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+    }
+
+    .thumb-meta {
+      padding: 10px 12px;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: left;
+    }
+
+    @media (max-width: 1080px) {
+      .scheme-body {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .lightbox-stage {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        width: min(calc(100% - 20px), var(--max-width));
+        margin-top: 10px;
+      }
+
+      .hero {
+        padding: 24px;
+        border-radius: 22px;
+      }
+
+      .scheme-head,
+      .scheme-body {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      h1 {
+        line-height: 1.02;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="hero-top">
+        <div class="hero-title">
+          <span class="eyebrow">Style Preview</span>
+          <h1>PPT 风格预览</h1>
+          <p class="intro">
+            这个页面用于展示本轮候选风格。每套候选默认包含一张首页、一张目录页和一张正文页，便于用户快速比较第一印象、结构能力和内容承载能力。
+          </p>
+        </div>
+        <div class="hero-notes">
+          <div class="note-card">
+            <span class="note-label">使用方式</span>
+            <div class="note-value">先展开候选方案，再点击图片放大查看细节。</div>
+          </div>
+          <div class="note-card">
+            <span class="note-label">比较方式</span>
+            <div class="note-value">候选数量由当前轮次决定；保持同样的三种预览页型，方便横向比较。</div>
+          </div>
+        </div>
+      </div>
+      <div class="summary-bar">
+        <span class="summary-chip">首页：看气质</span>
+        <span class="summary-chip">目录页：看结构</span>
+        <span class="summary-chip">正文页：看可用性</span>
+        <span class="summary-chip">卡片：看提案理由</span>
+      </div>
+    </section>
+
+    <main class="gallery">
+      <section class="scheme" data-scheme>
+        <div class="scheme-head">
+          <div class="scheme-main">
+            <div class="scheme-topline">
+              <span class="scheme-code">A</span>
+              <span class="scheme-tag">推荐方向占位</span>
+            </div>
+            <h2 class="scheme-title">方案 A｜稳妥商务科技</h2>
+            <p class="scheme-subtitle">适合正式汇报与答辩场景，稳、清楚、有一点科技感，但不会显得过度设计。</p>
+          </div>
+        </div>
+        <div class="scheme-body">
+          <aside class="meta-panel">
+            <div class="meta-section">
+              <div class="meta-label">一句话定位</div>
+              <div class="meta-value">适合正式汇报，稳、清楚，有一点科技感，但不会显得过度设计。</div>
+            </div>
+            <div class="meta-section">
+              <div class="meta-label">封面页方向</div>
+              <div class="meta-value">封面采用较克制的构图方式，以简洁主视觉或抽象科技元素建立第一印象，整体偏稳重、清晰、专业。</div>
+            </div>
+            <div class="meta-section">
+              <div class="meta-label">正文页视觉语法</div>
+              <div class="meta-value">正文页偏模块化与结构化组织，统一感来自克制的容器语言、稳定的标题层级和有限的重点高亮，不依赖固定版式。</div>
+            </div>
+            <div class="meta-section">
+              <div class="meta-label">适用场景</div>
+              <div class="meta-value">正式汇报、产品方案、企业答辩、偏理性的展示场景。</div>
+            </div>
+            <div class="meta-section">
+              <div class="meta-label">风险点</div>
+              <div class="meta-value">整体更稳，安全感强，但视觉记忆点可能不如更大胆的方案突出。</div>
+            </div>
+          </aside>
+          <div class="preview-grid">
+            <div class="preview-card">
+              <div class="preview-label">首页</div>
+              <button class="preview-button" type="button" data-preview-title="方案 A｜首页预览" data-preview-subtitle="看第一印象、主视觉和整体气质。" data-preview-group="A" data-preview-index="0">
+                <img class="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23e5d1ba'/%3E%3Cstop offset='1' stop-color='%23f8f1e7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23g)'/%3E%3Ccircle cx='1260' cy='190' r='240' fill='%23bc5b28' fill-opacity='.12'/%3E%3Crect x='120' y='120' width='1360' height='660' rx='40' fill='%23fffaf4' fill-opacity='.72' stroke='%23b79374' stroke-opacity='.28'/%3E%3Ctext x='160' y='220' font-size='42' fill='%23806a55' font-family='Segoe UI, Arial, sans-serif'%3ECover preview placeholder%3C/text%3E%3Ctext x='160' y='420' font-size='118' fill='%23201a13' font-family='Segoe UI, Arial, sans-serif' font-weight='700'%3EHERO PAGE%3C/text%3E%3Ctext x='160' y='520' font-size='44' fill='%236d5d4c' font-family='Segoe UI, Arial, sans-serif'%3EReplace with generated cover image%3C/text%3E%3C/svg%3E" alt="方案 A 首页预览">
+              </button>
+              <div class="preview-caption">建立第一印象，重点看构图、主视觉和整体气质。</div>
+            </div>
+            <div class="preview-card">
+              <div class="preview-label">目录页</div>
+              <button class="preview-button" type="button" data-preview-title="方案 A｜目录页预览" data-preview-subtitle="看结构能力和层级组织。" data-preview-group="A" data-preview-index="1">
+                <img class="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23d9e3ef'/%3E%3Cstop offset='1' stop-color='%23f5efe5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23g)'/%3E%3Crect x='130' y='110' width='1340' height='680' rx='44' fill='%23fffaf4' fill-opacity='.82' stroke='%2398a9bc' stroke-opacity='.28'/%3E%3Ctext x='170' y='210' font-size='42' fill='%23687b8f' font-family='Segoe UI, Arial, sans-serif'%3ETOC preview placeholder%3C/text%3E%3Crect x='170' y='290' width='1240' height='72' rx='20' fill='%23ffffff' fill-opacity='.82'/%3E%3Crect x='170' y='404' width='560' height='280' rx='28' fill='%23ffffff' fill-opacity='.72'/%3E%3Crect x='760' y='404' width='650' height='80' rx='24' fill='%23ffffff' fill-opacity='.82'/%3E%3Crect x='760' y='514' width='650' height='80' rx='24' fill='%23ffffff' fill-opacity='.72'/%3E%3Crect x='760' y='624' width='650' height='80' rx='24' fill='%23ffffff' fill-opacity='.62'/%3E%3Ctext x='200' y='338' font-size='74' fill='%23201a13' font-family='Segoe UI, Arial, sans-serif' font-weight='700'%3ECONTENTS%3C/text%3E%3C/svg%3E" alt="方案 A 目录页预览">
+              </button>
+              <div class="preview-caption">检查这套风格是否能支撑结构型页面，而不只是好看。</div>
+            </div>
+            <div class="preview-card">
+              <div class="preview-label">正文页</div>
+              <button class="preview-button" type="button" data-preview-title="方案 A｜正文页预览" data-preview-subtitle="看信息承载和视觉语法是否成立。" data-preview-group="A" data-preview-index="2">
+                <img class="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23e8dbc6'/%3E%3Cstop offset='1' stop-color='%23f6efe6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23g)'/%3E%3Crect x='120' y='110' width='1360' height='680' rx='44' fill='%23fffaf4' fill-opacity='.82' stroke='%23b59a7d' stroke-opacity='.28'/%3E%3Ctext x='165' y='210' font-size='42' fill='%23806a55' font-family='Segoe UI, Arial, sans-serif'%3EBody preview placeholder%3C/text%3E%3Crect x='170' y='286' width='760' height='88' rx='24' fill='%23ffffff' fill-opacity='.84'/%3E%3Crect x='170' y='414' width='390' height='240' rx='30' fill='%23ffffff' fill-opacity='.74'/%3E%3Crect x='588' y='414' width='342' height='240' rx='30' fill='%23ffffff' fill-opacity='.68'/%3E%3Crect x='968' y='286' width='440' height='368' rx='34' fill='%23ffffff' fill-opacity='.72'/%3E%3Crect x='170' y='690' width='1240' height='42' rx='18' fill='%23ffffff' fill-opacity='.58'/%3E%3Ctext x='205' y='346' font-size='64' fill='%23201a13' font-family='Segoe UI, Arial, sans-serif' font-weight='700'%3EBODY CONTENT%3C/text%3E%3C/svg%3E" alt="方案 A 正文页预览">
+              </button>
+              <div class="preview-caption">检查信息进去以后是否清楚、稳、可读。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="scheme" data-scheme>
+        <div class="scheme-head">
+          <div class="scheme-main">
+            <div class="scheme-topline">
+              <span class="scheme-code">B</span>
+              <span class="scheme-tag">占位方向</span>
+            </div>
+            <h2 class="scheme-title">方案 B｜轻表达信息设计</h2>
+            <p class="scheme-subtitle">这里放第二套候选的摘要说明。你可以继续复用同一结构替换文字与图片。</p>
+          </div>
+        </div>
+        <div class="scheme-body">
+          <aside class="meta-panel">
+            <div class="meta-section"><div class="meta-label">一句话定位</div><div class="meta-value">占位内容</div></div>
+            <div class="meta-section"><div class="meta-label">封面页方向</div><div class="meta-value">占位内容</div></div>
+            <div class="meta-section"><div class="meta-label">正文页视觉语法</div><div class="meta-value">占位内容</div></div>
+            <div class="meta-section"><div class="meta-label">适用场景</div><div class="meta-value">占位内容</div></div>
+            <div class="meta-section"><div class="meta-label">风险点</div><div class="meta-value">占位内容</div></div>
+          </aside>
+          <div class="preview-grid">
+            <div class="preview-card">
+              <div class="preview-label">首页</div>
+              <button class="preview-button" type="button" data-preview-title="方案 B｜首页预览" data-preview-subtitle="看第一印象、主视觉和整体气质。" data-preview-group="B" data-preview-index="0">
+                <img class="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23e5d1ba'/%3E%3Cstop offset='1' stop-color='%23f8f1e7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23g)'/%3E%3Ccircle cx='1260' cy='190' r='240' fill='%23bc5b28' fill-opacity='.12'/%3E%3Crect x='120' y='120' width='1360' height='660' rx='40' fill='%23fffaf4' fill-opacity='.72' stroke='%23b79374' stroke-opacity='.28'/%3E%3Ctext x='160' y='220' font-size='42' fill='%23806a55' font-family='Segoe UI, Arial, sans-serif'%3ECover preview placeholder%3C/text%3E%3Ctext x='160' y='420' font-size='118' fill='%23201a13' font-family='Segoe UI, Arial, sans-serif' font-weight='700'%3EHERO PAGE%3C/text%3E%3Ctext x='160' y='520' font-size='44' fill='%236d5d4c' font-family='Segoe UI, Arial, sans-serif'%3EReplace with generated cover image%3C/text%3E%3C/svg%3E" alt="方案 B 首页预览">
+              </button>
+              <div class="preview-caption">替换为方案 B 的首页预览图。</div>
+            </div>
+            <div class="preview-card">
+              <div class="preview-label">目录页</div>
+              <button class="preview-button" type="button" data-preview-title="方案 B｜目录页预览" data-preview-subtitle="看结构能力和层级组织。" data-preview-group="B" data-preview-index="1">
+                <img class="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23d9e3ef'/%3E%3Cstop offset='1' stop-color='%23f5efe5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23g)'/%3E%3Crect x='130' y='110' width='1340' height='680' rx='44' fill='%23fffaf4' fill-opacity='.82' stroke='%2398a9bc' stroke-opacity='.28'/%3E%3Ctext x='170' y='210' font-size='42' fill='%23687b8f' font-family='Segoe UI, Arial, sans-serif'%3ETOC preview placeholder%3C/text%3E%3Crect x='170' y='290' width='1240' height='72' rx='20' fill='%23ffffff' fill-opacity='.82'/%3E%3Crect x='170' y='404' width='560' height='280' rx='28' fill='%23ffffff' fill-opacity='.72'/%3E%3Crect x='760' y='404' width='650' height='80' rx='24' fill='%23ffffff' fill-opacity='.82'/%3E%3Crect x='760' y='514' width='650' height='80' rx='24' fill='%23ffffff' fill-opacity='.72'/%3E%3Crect x='760' y='624' width='650' height='80' rx='24' fill='%23ffffff' fill-opacity='.62'/%3E%3Ctext x='200' y='338' font-size='74' fill='%23201a13' font-family='Segoe UI, Arial, sans-serif' font-weight='700'%3ECONTENTS%3C/text%3E%3C/svg%3E" alt="方案 B 目录页预览">
+              </button>
+              <div class="preview-caption">替换为方案 B 的目录页预览图。</div>
+            </div>
+            <div class="preview-card">
+              <div class="preview-label">正文页</div>
+              <button class="preview-button" type="button" data-preview-title="方案 B｜正文页预览" data-preview-subtitle="看信息承载和视觉语法是否成立。" data-preview-group="B" data-preview-index="2">
+                <img class="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23e8dbc6'/%3E%3Cstop offset='1' stop-color='%23f6efe6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23g)'/%3E%3Crect x='120' y='110' width='1360' height='680' rx='44' fill='%23fffaf4' fill-opacity='.82' stroke='%23b59a7d' stroke-opacity='.28'/%3E%3Ctext x='165' y='210' font-size='42' fill='%23806a55' font-family='Segoe UI, Arial, sans-serif'%3EBody preview placeholder%3C/text%3E%3Crect x='170' y='286' width='760' height='88' rx='24' fill='%23ffffff' fill-opacity='.84'/%3E%3Crect x='170' y='414' width='390' height='240' rx='30' fill='%23ffffff' fill-opacity='.74'/%3E%3Crect x='588' y='414' width='342' height='240' rx='30' fill='%23ffffff' fill-opacity='.68'/%3E%3Crect x='968' y='286' width='440' height='368' rx='34' fill='%23ffffff' fill-opacity='.72'/%3E%3Crect x='170' y='690' width='1240' height='42' rx='18' fill='%23ffffff' fill-opacity='.58'/%3E%3Ctext x='205' y='346' font-size='64' fill='%23201a13' font-family='Segoe UI, Arial, sans-serif' font-weight='700'%3EBODY CONTENT%3C/text%3E%3C/svg%3E" alt="方案 B 正文页预览">
+              </button>
+              <div class="preview-caption">替换为方案 B 的正文页预览图。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="scheme" data-scheme>
+        <div class="scheme-head">
+          <div class="scheme-main">
+            <div class="scheme-topline">
+              <span class="scheme-code">C</span>
+              <span class="scheme-tag">占位方向</span>
+            </div>
+            <h2 class="scheme-title">方案 C｜高视觉未来感</h2>
+            <p class="scheme-subtitle">这里放第三套候选的摘要说明。后续轮次如有更多候选，继续沿用同一展示结构即可。</p>
+          </div>
+        </div>
+        <div class="scheme-body">
+          <aside class="meta-panel">
+            <div class="meta-section"><div class="meta-label">一句话定位</div><div class="meta-value">占位内容</div></div>
+            <div class="meta-section"><div class="meta-label">封面页方向</div><div class="meta-value">占位内容</div></div>
+            <div class="meta-section"><div class="meta-label">正文页视觉语法</div><div class="meta-value">占位内容</div></div>
+            <div class="meta-section"><div class="meta-label">适用场景</div><div class="meta-value">占位内容</div></div>
+            <div class="meta-section"><div class="meta-label">风险点</div><div class="meta-value">占位内容</div></div>
+          </aside>
+          <div class="preview-grid">
+            <div class="preview-card">
+              <div class="preview-label">首页</div>
+              <button class="preview-button" type="button" data-preview-title="方案 C｜首页预览" data-preview-subtitle="看第一印象、主视觉和整体气质。" data-preview-group="C" data-preview-index="0">
+                <img class="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23e5d1ba'/%3E%3Cstop offset='1' stop-color='%23f8f1e7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23g)'/%3E%3Ccircle cx='1260' cy='190' r='240' fill='%23bc5b28' fill-opacity='.12'/%3E%3Crect x='120' y='120' width='1360' height='660' rx='40' fill='%23fffaf4' fill-opacity='.72' stroke='%23b79374' stroke-opacity='.28'/%3E%3Ctext x='160' y='220' font-size='42' fill='%23806a55' font-family='Segoe UI, Arial, sans-serif'%3ECover preview placeholder%3C/text%3E%3Ctext x='160' y='420' font-size='118' fill='%23201a13' font-family='Segoe UI, Arial, sans-serif' font-weight='700'%3EHERO PAGE%3C/text%3E%3Ctext x='160' y='520' font-size='44' fill='%236d5d4c' font-family='Segoe UI, Arial, sans-serif'%3EReplace with generated cover image%3C/text%3E%3C/svg%3E" alt="方案 C 首页预览">
+              </button>
+              <div class="preview-caption">替换为方案 C 的首页预览图。</div>
+            </div>
+            <div class="preview-card">
+              <div class="preview-label">目录页</div>
+              <button class="preview-button" type="button" data-preview-title="方案 C｜目录页预览" data-preview-subtitle="看结构能力和层级组织。" data-preview-group="C" data-preview-index="1">
+                <img class="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23d9e3ef'/%3E%3Cstop offset='1' stop-color='%23f5efe5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23g)'/%3E%3Crect x='130' y='110' width='1340' height='680' rx='44' fill='%23fffaf4' fill-opacity='.82' stroke='%2398a9bc' stroke-opacity='.28'/%3E%3Ctext x='170' y='210' font-size='42' fill='%23687b8f' font-family='Segoe UI, Arial, sans-serif'%3ETOC preview placeholder%3C/text%3E%3Crect x='170' y='290' width='1240' height='72' rx='20' fill='%23ffffff' fill-opacity='.82'/%3E%3Crect x='170' y='404' width='560' height='280' rx='28' fill='%23ffffff' fill-opacity='.72'/%3E%3Crect x='760' y='404' width='650' height='80' rx='24' fill='%23ffffff' fill-opacity='.82'/%3E%3Crect x='760' y='514' width='650' height='80' rx='24' fill='%23ffffff' fill-opacity='.72'/%3E%3Crect x='760' y='624' width='650' height='80' rx='24' fill='%23ffffff' fill-opacity='.62'/%3E%3Ctext x='200' y='338' font-size='74' fill='%23201a13' font-family='Segoe UI, Arial, sans-serif' font-weight='700'%3ECONTENTS%3C/text%3E%3C/svg%3E" alt="方案 C 目录页预览">
+              </button>
+              <div class="preview-caption">替换为方案 C 的目录页预览图。</div>
+            </div>
+            <div class="preview-card">
+              <div class="preview-label">正文页</div>
+              <button class="preview-button" type="button" data-preview-title="方案 C｜正文页预览" data-preview-subtitle="看信息承载和视觉语法是否成立。" data-preview-group="C" data-preview-index="2">
+                <img class="preview-image" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23e8dbc6'/%3E%3Cstop offset='1' stop-color='%23f6efe6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1600' height='900' fill='url(%23g)'/%3E%3Crect x='120' y='110' width='1360' height='680' rx='44' fill='%23fffaf4' fill-opacity='.82' stroke='%23b59a7d' stroke-opacity='.28'/%3E%3Ctext x='165' y='210' font-size='42' fill='%23806a55' font-family='Segoe UI, Arial, sans-serif'%3EBody preview placeholder%3C/text%3E%3Crect x='170' y='286' width='760' height='88' rx='24' fill='%23ffffff' fill-opacity='.84'/%3E%3Crect x='170' y='414' width='390' height='240' rx='30' fill='%23ffffff' fill-opacity='.74'/%3E%3Crect x='588' y='414' width='342' height='240' rx='30' fill='%23ffffff' fill-opacity='.68'/%3E%3Crect x='968' y='286' width='440' height='368' rx='34' fill='%23ffffff' fill-opacity='.72'/%3E%3Crect x='170' y='690' width='1240' height='42' rx='18' fill='%23ffffff' fill-opacity='.58'/%3E%3Ctext x='205' y='346' font-size='64' fill='%23201a13' font-family='Segoe UI, Arial, sans-serif' font-weight='700'%3EBODY CONTENT%3C/text%3E%3C/svg%3E" alt="方案 C 正文页预览">
+              </button>
+              <div class="preview-caption">替换为方案 C 的正文页预览图。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightbox-panel" role="dialog" aria-modal="true" aria-labelledby="lightboxTitle">
+      <div class="lightbox-head">
+        <div>
+          <h2 class="lightbox-title" id="lightboxTitle"></h2>
+          <p class="lightbox-subtitle" id="lightboxSubtitle"></p>
+        </div>
+        <div class="lightbox-actions">
+          <button class="icon-button" id="prevButton" type="button" aria-label="上一张">←</button>
+          <button class="icon-button" id="nextButton" type="button" aria-label="下一张">→</button>
+          <button class="icon-button" id="closeButton" type="button" aria-label="关闭">✕</button>
+        </div>
+      </div>
+      <div class="lightbox-body">
+        <div class="lightbox-stage">
+          <div class="lightbox-image-wrap">
+            <img class="lightbox-image" id="lightboxImage" alt="">
+          </div>
+          <div class="lightbox-side" id="lightboxThumbs"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const schemes = [...document.querySelectorAll('[data-scheme]')];
+    const previewButtons = [...document.querySelectorAll('.preview-button')];
+
+    const previewGroups = previewButtons.reduce((acc, button) => {
+      const key = button.dataset.previewGroup;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(button);
+      acc[key].sort((a, b) => Number(a.dataset.previewIndex) - Number(b.dataset.previewIndex));
+      return acc;
+    }, {});
+
+    const lightbox = document.getElementById('lightbox');
+    const lightboxTitle = document.getElementById('lightboxTitle');
+    const lightboxSubtitle = document.getElementById('lightboxSubtitle');
+    const lightboxImage = document.getElementById('lightboxImage');
+    const lightboxThumbs = document.getElementById('lightboxThumbs');
+    const prevButton = document.getElementById('prevButton');
+    const nextButton = document.getElementById('nextButton');
+    const closeButton = document.getElementById('closeButton');
+
+    const state = {
+      group: null,
+      index: 0,
+    };
+
+    function renderLightbox() {
+      const buttons = previewGroups[state.group] || [];
+      const current = buttons[state.index];
+      if (!current) return;
+
+      const image = current.querySelector('img');
+      lightboxTitle.textContent = current.dataset.previewTitle || '';
+      lightboxSubtitle.textContent = current.dataset.previewSubtitle || '';
+      lightboxImage.src = image?.src || '';
+      lightboxImage.alt = image?.alt || '';
+
+      lightboxThumbs.innerHTML = buttons.map((button, index) => {
+        const img = button.querySelector('img');
+        return `
+          <button class="thumb-button ${index === state.index ? 'active' : ''}" type="button" data-thumb-index="${index}">
+            <img class="thumb-image" src="${img?.src || ''}" alt="${img?.alt || ''}">
+            <div class="thumb-meta">${img?.alt || ''}</div>
+          </button>
+        `;
+      }).join('');
+
+      prevButton.disabled = buttons.length <= 1;
+      nextButton.disabled = buttons.length <= 1;
+    }
+
+    function openLightbox(group, index) {
+      state.group = group;
+      state.index = index;
+      renderLightbox();
+      lightbox.classList.add('open');
+      lightbox.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden', 'true');
+      state.group = null;
+    }
+
+    function moveLightbox(step) {
+      const buttons = previewGroups[state.group] || [];
+      if (!buttons.length) return;
+      state.index = (state.index + step + buttons.length) % buttons.length;
+      renderLightbox();
+    }
+
+    document.addEventListener('click', (event) => {
+      const previewButton = event.target.closest('.preview-button');
+      if (previewButton) {
+        openLightbox(previewButton.dataset.previewGroup, Number(previewButton.dataset.previewIndex || 0));
+        return;
+      }
+
+      const thumbButton = event.target.closest('[data-thumb-index]');
+      if (thumbButton && state.group) {
+        state.index = Number(thumbButton.dataset.thumbIndex || 0);
+        renderLightbox();
+        return;
+      }
+
+      if (event.target === lightbox) {
+        closeLightbox();
+      }
+    });
+
+    prevButton.addEventListener('click', () => moveLightbox(-1));
+    nextButton.addEventListener('click', () => moveLightbox(1));
+    closeButton.addEventListener('click', closeLightbox);
+
+    document.addEventListener('keydown', (event) => {
+      if (!state.group) return;
+      if (event.key === 'Escape') closeLightbox();
+      if (event.key === 'ArrowLeft') moveLightbox(-1);
+      if (event.key === 'ArrowRight') moveLightbox(1);
+    });
+  </script>
+</body>
+</html>

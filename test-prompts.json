@@ -1,0 +1,32 @@
+[
+  {
+    "id": "happy-path-full-deck",
+    "prompt": "帮我做一份 8 页左右的项目复盘汇报 PPT，主题是‘AI 工具提升研发效率’，受众是部门负责人。我只有零散想法，你帮我补强内容并做完整成品。",
+    "expected": "Agent first runs Stage 0 preflight, then follows Phase A: intake confirmation, content_report, style boundary, real HTML preview gate, planning files, final image deck, review gate, and one non-pushy Phase C prompt."
+  },
+  {
+    "id": "phase-c-only-routing",
+    "prompt": "只做文字可编辑 PPTX，不要先做图片版。主题是‘新员工培训流程’，10 页以内，后期我要自己改字。",
+    "expected": "Agent routes directly to Phase C-only, skips Phase A preview/review/retouch, collects the minimum inputs, creates design_spec/slide_blueprint/spec_lock, generates a 1-2 page background + editable text preview gate for user confirmation, then batches backgrounds, opens editor, validates deck.json, and renders editable PPTX."
+  },
+  {
+    "id": "phase-a-decline-editable",
+    "prompt": "图片版就够了，不需要可编辑版本，先这样结束。",
+    "expected": "After Phase A delivery prompt, agent accepts the refusal, does not enter Phase C, does not ask repeatedly, and ends with image PPTX paths and artifacts."
+  },
+  {
+    "id": "editor-sentinel-render",
+    "prompt": "===PPT-CRAFT-EDITABLE / DECK FROM EDITOR===\n请渲染。\n===DECK JSON BEGIN===\n{\"deck\":{\"ratio\":\"16:9\"},\"slides\":[{\"id\":\"01\",\"background\":\"backgrounds/01.png\",\"text_boxes\":[{\"id\":\"t1\",\"text\":\"标题\",\"x\":0.1,\"y\":0.1,\"w\":0.5,\"h\":0.15}]}]}\n===DECK JSON END===",
+    "expected": "Agent does not interpret or modify JSON, saves the exact JSON to phaseC/deck.json, validates it, runs json_to_pptx.py, and returns the PPTX path or clear validation errors."
+  },
+  {
+    "id": "preflight-blocker",
+    "prompt": "帮我做一个路演 PPT，但 preflight 显示 Python 版本太低或磁盘不足。",
+    "expected": "Agent stops before Stage 1, explains the blocking FAIL item and repair command, and does not continue to imagegen or planning files."
+  },
+  {
+    "id": "invalid-deck-json",
+    "prompt": "我贴回来的 deck.json 里某页没有 background，或者 text box 的 x/w 超过 1，请直接渲染。",
+    "expected": "Agent runs the deck validator, reports precise schema/path/coordinate errors, does not guess missing fields, and asks the user to fix/export again."
+  }
+]

@@ -1,202 +1,206 @@
 # PPT Craft Editable
 
-这是一个用来制作 PPT 的 AI 技能。你只需要给出主题、材料和偏好，它会先帮你做出高完成度的图片版 PPT；如果你需要后期改字，也可以继续生成文字可编辑版 PPTX。
-
-适合这些场景：
-
-- 汇报、答辩、路演、培训、课程、提案等正式 PPT
-- 只有一个主题，想让 AI 帮你补全结构和内容
-- 已经有报告、论文、讲稿或提纲，想转成视觉完成度更高的 PPT
-- 希望最终文字能在 PowerPoint / Keynote 里继续修改
+English | [简体中文](README_zh.md)
 
 ---
 
-## 你会得到什么
+This is an AI skill for making PPT presentations. You only need to provide the topic, materials, and preferences, and it will first help you create a highly polished image-based PPT. If you need to edit the text later, you can also continue to generate a text-editable PPTX.
 
-默认情况下，你会先得到一套图片版 PPT：
+Suitable for these scenarios:
 
-- 每页定稿图
-- 图片型 PPTX
-- 内容和视觉规划文档
-
-如果你选择继续做可编辑文字版，还会得到：
-
-- 文字可编辑 PPTX
-- 每页无文字背景图
-- `deck.json`，记录每个文字框的位置、字体、字号和颜色
-- 可选预览图，方便核对最终排版
-
-文字可编辑版里，背景是一张图片，标题、正文、数字、日期、署名等是 PPT 里的真实文字框，可以直接改。
+- Formal PPTs such as reports, thesis defenses, roadshows, training sessions, course lectures, and proposals.
+- Having only a topic and wanting the AI to help you complete the structure and content.
+- Already having reports, papers, lecture drafts, or outlines, and wanting to convert them into PPTs with higher visual fidelity.
+- Wishing the final text to remain editable in PowerPoint / Keynote.
 
 ---
 
-## 两种使用方式
+## What You Get
 
-### 方式一：先做图片版，再决定是否要可编辑文字版
+By default, you will first get a set of image-based PPT:
 
-这是默认方式。
+- Finalized slide images for each page
+- Image-based PPTX
+- Content and visual planning documents
 
-你可以直接说：
+If you choose to continue and make the text-editable version, you will also get:
+
+- Text-editable PPTX
+- Background images without text for each page
+- `deck.json`, which records the position, font, font size, and color of each text box
+- Optional preview images for easy verification of the final layout
+
+In the text-editable version, the background is an image, while the titles, body text, numbers, dates, signatures, etc., are real text boxes in the PPT and can be edited directly.
+
+---
+
+## Two Ways to Use
+
+### Method 1: Make the image-based version first, then decide whether to make the text-editable version
+
+This is the default method.
+
+You can say directly:
 
 ```text
-帮我做一个关于“新员工培训流程”的 PPT，10 页以内，面向刚入职的同事。
+Help me make a PPT about "New Employee Onboarding Process", under 10 pages, aimed at newly joined colleagues.
 ```
 
-技能会先完成图片版 PPT。交付后，它会主动问你是否还需要文字可编辑版。你同意后，才会进入可编辑文字版流程。
+The skill will complete the image-based PPT first. After delivery, it will actively ask if you need the text-editable version. Once you agree, it will enter the text-editable workflow.
 
-### 方式二：一开始就只做文字可编辑版
+### Method 2: Start with the text-editable version only
 
-如果你明确不想先做图片版，可以直接说：
+If you explicitly do not want to make the image-based version first, you can say directly:
 
 ```text
-只做文字可编辑 PPTX，不要先做图片版。主题是“年度经营复盘”，12 页以内。
+Only make the text-editable PPTX, do not make the image-based version first. The topic is "Annual Operations Review", under 12 pages.
 ```
 
-这时会直接进入可编辑版流程。它会先确认每页大纲，再做 1-2 页轻量预览，确认后才批量生成整套。
+At this point, it will directly enter the editable workflow. It will first confirm the outline of each page, then make a 1-2 page lightweight preview. After confirmation, it will batch-generate the entire set.
 
 ---
 
-## 使用过程
+## Process
 
-### 1. 需求确认
+### 1. Requirements Confirmation
 
-你先提供主题、用途、受众、页数范围和已有材料。材料可以很粗糙，例如几段文字、一个目录、会议纪要、论文摘要或报告内容。
+You first provide the topic, purpose, audience, page range, and existing materials. Materials can be very rough, such as a few paragraphs of text, a table of contents, meeting minutes, paper abstracts, or report content.
 
-技能会先整理理解，并让你确认方向是否正确。
+The skill will first organize its understanding and ask you to confirm if the direction is correct.
 
-### 2. 页大纲确认
+### 2. Slide Outline Confirmation
 
-在正式设计前，会先确认“每页放什么文字”。这一步会生成：
+Before formal design, it will first confirm "what text to put on each page". This step will generate:
 
 - `slide_outline.md`
 - `ppt大纲.md`
 
-你可以在文件里改标题、删页、加页、调整顺序或补充真实数据。确认后，后续预览和生成都会以这份大纲为准。
+You can modify titles, delete pages, add pages, adjust the order, or supplement real data in the file. Once confirmed, subsequent previews and generation will follow this outline.
 
-### 3. 风格预览
+### 3. Style Preview
 
-技能会生成多套风格方向，并把真实预览图放进 HTML 预览页。你在浏览器里看效果，选择喜欢的方向，或者要求混合、修改。
+The skill will generate multiple style directions and put real preview images into the HTML preview page. You view the effects in the browser, choose the style you like, or ask to blend or modify them.
 
-### 4. 图片版 PPT 生成
+### 4. Image-Based PPT Generation
 
-确认风格和生成前规划后，技能会生成全套页面定稿图，并用 HTML 评审页让你逐页确认。需要修图时，可以指出问题再返修。
+After confirming the style and pre-generation planning, the skill will generate the full set of final slide images and let you confirm page-by-page using the HTML review page. If any edits are needed, you can point out the issues and request revisions.
 
-图片版完成后，会交付：
+Once the image-based version is completed, it will deliver:
 
-- `phaseA/slides/`：每页定稿图
-- 图片型 PPTX
-- `content_report.md`、`design_spec.md`、`slide_blueprint.md`、`spec_lock.md` 等规划文件
+- `phaseA/slides/`: final slide images for each page
+- Image-based PPTX
+- Planning files such as `content_report.md`, `design_spec.md`, `slide_blueprint.md`, and `spec_lock.md`
 
-### 5. 可编辑文字版生成
+### 5. Text-Editable Version Generation
 
-如果你需要可编辑文字版，技能会把每页拆成“背景图 + 可编辑文字框”。
+If you need the text-editable version, the skill will split each page into "background image + editable text boxes".
 
-如果是一开始就只做可编辑版，会先生成 C0 轻量预览：
+If you chose to do the editable version from the start, it will first generate a C0 lightweight preview:
 
-- `phaseC/c0/editor.html`：打开后可以看到背景和可编辑文字叠放效果
-- `phaseC/c0/preview/`：静态预览图
-- `phaseC/c0/deck.json`：临时预览数据
+- `phaseC/c0/editor.html`: open to see the overlay effect of the background and editable text
+- `phaseC/c0/preview/`: static preview images
+- `phaseC/c0/deck.json`: temporary preview data
 
-确认后，再批量生成正式背景和编辑器。
+After confirmation, it will batch-generate the formal backgrounds and the editor.
 
-### 6. 在编辑器里调文字和反馈背景
+### 6. Tweak Text and Feedback Background in the Editor
 
-可编辑文字版会生成：
+The text-editable version will generate:
 
 - `phaseC/editor.html`
 
-你打开它后可以：
+You open it and can:
 
-- 修改文字
-- 拖动文字框
-- 调整文字框大小
-- 改字体、字号、颜色、对齐
-- 添加或删除文字框
-- 切换到背景反馈模式，框选需要修改的背景区域
+- Modify text
+- Drag text boxes
+- Resize text boxes
+- Change font, font size, color, and alignment
+- Add or delete text boxes
+- Switch to background feedback mode to draw regions of the background that need modification
 
-满意后，点击导出，把整段内容贴回对话。技能会根据导出的内容继续生成 PPTX；如果你标注了背景问题，它会先修背景，再让你重新确认。
+Once satisfied, click export and paste the entire content back into the conversation. The skill will continue to generate the PPTX based on the exported content; if you marked background issues, it will fix the background first and let you confirm again.
 
-### 7. 最终交付
+### 7. Final Delivery
 
-最终可编辑版会生成：
+The final editable version will generate:
 
-- `phaseC/<主题>-editable.pptx`
+- `phaseC/<Topic>-editable.pptx`
 - `phaseC/deck.json`
 - `phaseC/backgrounds/`
-- `phaseC/preview/`（可选）
+- `phaseC/preview/` (optional)
 
 ---
 
-## 你需要准备什么
+## What You Need to Prepare
 
-越完整越好，但不完整也可以开始。
+The more complete, the better, but you can start even with incomplete information.
 
-建议提供：
+Recommended to provide:
 
-- PPT 主题
-- 用途：汇报、答辩、培训、路演、提案等
-- 受众：领导、客户、老师、同学、员工等
-- 页数范围
-- 已有材料：报告、讲稿、提纲、数据、论文、会议纪要等
-- 风格偏好：正式、科技、温暖、极简、学术、商业等
-- 是否需要文字可编辑版
+- PPT topic
+- Purpose: report, defense, training, roadshow, proposal, etc.
+- Audience: leaders, clients, teachers, classmates, employees, etc.
+- Page range
+- Existing materials: reports, drafts, outlines, data, papers, meeting minutes, etc.
+- Style preferences: formal, tech, warm, minimalist, academic, business, etc.
+- Whether you need the text-editable version
 
-如果你没有风格想法，可以不说，技能会先给你几套方向看。
-
----
-
-## 常用说法
-
-做默认图片版：
-
-```text
-帮我做一套“AI 产品运营复盘”的 PPT，面向部门周会，10 页左右。
-```
-
-直接做可编辑文字版：
-
-```text
-只做文字可编辑 PPTX，跳过图片版。主题是“新员工培训流程”，8 页左右。
-```
-
-给已有材料：
-
-```text
-我下面贴一份报告，请帮我整理成汇报 PPT，要求正式、清晰、适合给管理层看。
-```
-
-要求后期可改字：
-
-```text
-最终我要能在 PowerPoint 里改标题和正文，请走可编辑文字版。
-```
+If you have no ideas about the style, you don't need to specify it; the skill will first show you several directions.
 
 ---
 
-## 文件说明
+## Common Sayings
 
-常见文件和目录如下：
+Make default image-based version:
 
 ```text
-slide_outline.md          每页文字大纲
-ppt大纲.md                同内容大纲，方便中文用户查找
-content_report.md         内容基底，材料不足时会生成
-design_spec.md            视觉风格规则
-slide_blueprint.md        每页视觉和内容安排
-spec_lock.md              生成约束，防止文字被烤进背景
-
-phaseA/slides/            图片版每页定稿图
-phaseA/review/            图片版评审页面和数据
-phaseA/*-image-deck.pptx  图片型 PPTX
-
-phaseC/c0/                可编辑版轻量预览，仅 Phase C-only 时出现
-phaseC/backgrounds/       可编辑版背景图
-phaseC/deck.json          可编辑版核心数据
-phaseC/editor.html        可编辑文字和背景反馈编辑器
-phaseC/*-editable.pptx    文字可编辑 PPTX
+Help me make a set of "AI Product Operations Review" PPT, for the weekly department meeting, around 10 pages.
 ```
 
-一般用户只需要关注：
+Make text-editable version directly:
+
+```text
+Only make text-editable PPTX, skip the image version. Topic is "New Employee Onboarding Process", around 8 pages.
+```
+
+Provide existing materials:
+
+```text
+I will paste a report below, please help me organize it into a presentation PPT. It needs to be formal, clear, and suitable for management to review.
+```
+
+Request later text editability:
+
+```text
+Ultimately I need to be able to modify the title and body text in PowerPoint, please use the text-editable version.
+```
+
+---
+
+## File Description
+
+Common files and directories are as follows:
+
+```text
+slide_outline.md          Text outline for each slide
+ppt大纲.md                Same content outline, convenient for Chinese users to find
+content_report.md         Content base, generated when materials are insufficient
+design_spec.md            Visual style rules
+slide_blueprint.md        Visual and content arrangement for each slide
+spec_lock.md              Generation constraints to prevent text from being baked into the background
+
+phaseA/slides/            Final images for each slide in the image-based version
+phaseA/review/            Review pages and data for the image-based version
+phaseA/*-image-deck.pptx  Image-based PPTX
+
+phaseC/c0/                Lightweight preview of the editable version, only appears in Phase C-only mode
+phaseC/backgrounds/       Background images for the editable version
+phaseC/deck.json          Core data of the editable version
+phaseC/editor.html        Editable text and background feedback editor
+phaseC/*-editable.pptx    Text-editable PPTX
+```
+
+General users only need to pay attention to:
 
 - `ppt大纲.md`
 - `phaseA/*-image-deck.pptx`
@@ -205,52 +209,59 @@ phaseC/*-editable.pptx    文字可编辑 PPTX
 
 ---
 
-## 安装和环境
+## Installation and Environment
 
-把这个技能目录放到你的 AI 客户端支持的 skills 目录下即可。
+Put this skill directory into the `skills` directory supported by your AI client.
 
-常见位置：
+Common locations:
 
-| AI 客户端 | skills 目录 |
-|---|---|
-| Codex CLI | `~/.codex/skills/` 或 `$CODEX_HOME/skills/` |
-| Claude Code CLI | `~/.claude/skills/` |
+| AI Client       | skills Directory                                |
+| --------------- | ----------------------------------------------- |
+| Codex CLI       | `~/.codex/skills/` or `$CODEX_HOME/skills/`     |
+| Claude Code CLI | `~/.claude/skills/`                             |
 
-首次使用时，技能会自动运行环境自检并安装必要 Python 包：
+When used for the first time, the skill will automatically run environment preflight checks and install necessary Python packages:
 
 ```bash
 python3 scripts/preflight.py
 ```
 
-它会检查：
+It will check:
 
-- Python 版本
-- `python-pptx`、Pillow、numpy、opencv-python
-- 字体、磁盘空间、网络状态
-- 可选的 IOPaint 修图环境
+- Python version
+- `python-pptx`, Pillow, numpy, opencv-python
+- Fonts, disk space, network status
+- Optional IOPaint retouch environment
 
-如果你的客户端不会自动运行自检，也可以手动进入技能目录执行上面的命令。
-
----
-
-## 注意事项
-
-- 图片版 PPT 的文字是图片的一部分，不能在 PowerPoint 里直接改。
-- 可编辑文字版可以改字，但背景仍然是图片。
-- 可编辑版生成前，一定要在 `editor.html` 里确认并导出结果。
-- 如果你在编辑器里标注了背景问题，技能会先修背景，不会直接生成最终 PPTX。
-- 修图功能可能需要安装 IOPaint，首次可能需要几 GB 空间和数分钟时间。
+If your client does not run the self-check automatically, you can also enter the skill directory manually and run the command above.
 
 ---
 
-## 给维护者
+## Precautions
 
-详细流程和内部规则见：
+- The text in the image-based PPT is part of the image and cannot be modified directly in PowerPoint.
+- The text-editable version allows editing text, but the background remains an image.
+- Before generating the editable version, you must confirm and export the result in `editor.html`.
+- If you mark background issues in the editor, the skill will fix the background first and will not generate the final PPTX directly.
+- The retouching feature may require installing IOPaint. The first installation may require several gigabytes of space and take several minutes.
+
+---
+
+## For Maintainers
+
+Detailed workflow and internal rules can be found in:
 
 - `SKILL.md`
 - `references/pipeline.md`
 - `references/phaseA/workflow.md`
 - `references/phaseC/workflow.md`
 
-脚本入口集中在 `scripts/`。用户日常不需要手动运行这些脚本，除非你的 AI 客户端不支持自动执行。
-# ppt-craft-editable
+Script entrypoints are concentrated in `scripts/`. Regular users do not need to run these scripts manually unless your AI client does not support automatic execution.
+
+---
+
+## Acknowledgments
+
+Parts of the features in this skill are based on:
+
+- `ppt-image-first`
