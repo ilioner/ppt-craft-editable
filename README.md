@@ -265,3 +265,7 @@ Script entrypoints are concentrated in `scripts/`. Regular users do not need to 
 Parts of the features in this skill are based on:
 
 - `ppt-image-first`
+
+- 致谢
+
+本项目感谢 Linux.do 社区 对开源分享与传播的推动。
