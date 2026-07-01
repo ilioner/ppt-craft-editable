@@ -46,7 +46,7 @@ You can say directly:
 Help me make a PPT about "New Employee Onboarding Process", under 10 pages, aimed at newly joined colleagues.
 ```
 
-The skill will complete the image-based PPT first. After delivery, it will actively ask if you need the text-editable version. Once you agree, it will enter the text-editable workflow.
+The skill will complete the image-based PPT first. After delivery, it will actively ask if you need the text-editable version. Once you agree, it will enter the text-editable workflow. The editable version uses the approved image deck as a visual reference, then regenerates text-free backgrounds and overlays editable text boxes; it is not a pixel-exact text removal pass, so the background may differ slightly from the image-based version.
 
 ### Method 2: Start with the text-editable version only
 
@@ -93,11 +93,11 @@ Once the image-based version is completed, it will deliver:
 
 ### 5. Text-Editable Version Generation
 
-If you need the text-editable version, the skill will split each page into "background image + editable text boxes".
+If you need the text-editable version, the skill will split each page into "background image + editable text boxes". The background is regenerated as a text-free version based on the confirmed visual draft, not extracted by precisely cutting text out of the original image; textures, decorations, or layout details may vary slightly.
 
-If you chose to do the editable version from the start, it will first generate a C0 lightweight preview:
+If you chose to do the editable version from the start, it will first generate a C0 lightweight preview. This preview is for confirming the overall effect of the newly generated text-free background plus editable text boxes:
 
-- `phaseC/c0/editor.html`: open to see the overlay effect of the background and editable text
+- `phaseC/c0/editor.html`: open to see the overlay effect of the text-free background and editable text
 - `phaseC/c0/preview/`: static preview images
 - `phaseC/c0/deck.json`: temporary preview data
 

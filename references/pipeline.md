@@ -90,8 +90,9 @@ Phase A 跑完不能直接沉默结束，**必须**做一次主动询问。完�
 1. 先告诉用户图在哪、PPTX 在哪、规划文档在哪
 2. 简短说明"现在是图片版，不能在 PowerPoint 里直接改文字"
 3. 询问是否要 Phase C（可编辑文字版）
-4. 给出 Phase C 大致成本：每页约 2 张 imagegen（完整稿 + 擦字稿）
-5. 给出"不需要"的选项——图片版本身就能直接拿去用
+4. 说明 Phase C 会参考 Phase A 定稿重新生成无字背景并叠加可编辑文字，不是从原图里精确抠字，背景可能有细微差异
+5. 给出 Phase C 大致成本：每页约 2 张 imagegen（完整稿 + 擦字稿）
+6. 给出"不需要"的选项——图片版本身就能直接拿去用
 
 **不要**：
 - 不询问就结束对话
@@ -106,8 +107,8 @@ Phase A 跑完不能直接沉默结束，**必须**做一次主动询问。完�
 
 | 步骤 | 内容 | 关键脚本 / 资源 |
 |---|---|---|
-| C0（Phase C-only） | 先落地 `slide_outline.md` + `ppt大纲.md`，再出 1-2 页无文字背景 + 可编辑文字叠放预览，确认视觉基准后再批量生成 | `scripts/build_c0_preview.py` → `phaseC/c0/deck.json` + `phaseC/c0/editor.html` + `phaseC/c0/preview/` |
-| C1 | 先直编 Phase A 定稿图；不干净再回退到完整稿 → view_image → 擦字稿 | imagegen + view_image |
+| C0（Phase C-only） | 先落地 `slide_outline.md` + `ppt大纲.md`，再出 1-2 页重新生成的无字背景 + 可编辑文字叠放预览，确认视觉基准后再批量生成 | `scripts/build_c0_preview.py` → `phaseC/c0/deck.json` + `phaseC/c0/editor.html` + `phaseC/c0/preview/` |
+| C1 | 以 Phase A 定稿图作视觉参考生成无字背景；内部可先尝试直编，不干净再回退到完整稿 → view_image → 擦字稿 | imagegen + view_image |
 | C2 | 校验擦字稿的预留区是否真留白 | `scripts/detect_reserved_zones.py` |
 | C3 | 写 `phaseC/deck.json`（每页 background + text_boxes） | 模板见 `references/phaseC/workflow.md` Step C3 |
 | C4 | 把 deck.json 注入编辑器壳子 | `scripts/inject_editor_deck.py` + `assets/editor_shell/index.html` |
@@ -116,7 +117,7 @@ Phase A 跑完不能直接沉默结束，**必须**做一次主动询问。完�
 
 ### 逐页校验清单（Phase C）
 - [ ] Phase C-only 没有 Phase A 图时，已先过页大纲确认：`slide_outline.md` 和 `ppt大纲.md` 已落地且用户确认
-- [ ] Phase C-only 没有 Phase A 图时，已先过 C0：`phaseC/c0/deck.json`、`phaseC/c0/editor.html`、`phaseC/c0/preview/slide_*.png` 已生成，用户在 HTML 中确认 1-2 页无文字背景 + 可编辑文字叠放效果
+- [ ] Phase C-only 没有 Phase A 图时，已先过 C0：`phaseC/c0/deck.json`、`phaseC/c0/editor.html`、`phaseC/c0/preview/slide_*.png` 已生成，用户在 HTML 中确认 1-2 页重新生成的无字背景 + 可编辑文字叠放效果
 - [ ] 直编后的成品图存在并通过校验；若失败则回退到 `phaseC/backgrounds/NN-full.png`
 - [ ] 回退时第 2 稿（擦字稿）存在：`phaseC/backgrounds/NN.png`
 - [ ] `detect_reserved_zones.py` 校验通过（或不合规处已 IOPaint 修补）

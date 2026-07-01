@@ -3,7 +3,7 @@ name: ppt-craft-editable
 description: >-
   端到端 PPT 全流程，单技能自包含。用户首次触发本 skill 时，agent 必须默默跑 scripts/preflight.py 做环境自检 + 自动安装缺失的 Python 包；FAIL 才打断用户。
   环境通过后走 conversation-first + image-first 工作流：多阶段对话、内容补强、风格预览、规划锁定、出每页定稿图，并在用户驱动下做图像级 retouch（去水印 / 去瑕疵，内置 IOPaint 自动安装）。最终交付高完成度图片型 PPTX。
-  Phase A 结束后必须主动询问用户是否要可编辑文字版（Phase C）；若同意，进入 Phase C：分层重新生成"带装饰、留白文字区"的背景图 + HTML 编辑器调文字 → 一键渲染原生可编辑 PPTX。
+  Phase A 结束后必须主动询问用户是否要可编辑文字版（Phase C）；若同意，进入 Phase C：以 Phase A 定稿图作为视觉参考，重新生成"带装饰、留白文字区"的无字背景图 + HTML 编辑器调文字 → 一键渲染原生可编辑 PPTX。
   用户明确要求"只做可编辑版 / 只跑 Phase C / 跳过图片版"时，直接进入 Phase C-only 模式，不执行 Phase A 的任何生成、预览、review、retouch。
   ★ 当对话中出现 ===PPT-CRAFT-EDITABLE / DECK FROM EDITOR===、旧标记 ===PPT-IMAGE-FIRST-EDITABLE / DECK FROM EDITOR=== 或 ===DECK JSON BEGIN/END=== 标记时，agent 必须立刻把标记之间的 JSON 原样写入 phaseC/deck.json 并跑 scripts/json_to_pptx.py 渲染，不解读不修改不追问。
   当用户需要做汇报 / 答辩 / 路演 / 提案 PPT，或只丢一个主题想要完整成品时使用。
@@ -146,7 +146,7 @@ agent 在长对话里很容易忘记打开壳子，所以下面这两个动作�
 - **优先复用现有成果**：如果用户已经给了 Phase A 产物，直接拿来用
 - **必须先过页大纲确认门禁**：不管有无 Phase A 产物，C-only 路径也必须先写 `slide_outline.md`，并同步写一份同内容的 `ppt大纲.md` 方便用户查找；等用户确认后才进 C0/C1。若用户已有完整内容稿且页面结构清晰，可由 agent 直接梳理给用户确认，不需要反复追问细节
 - **缺输入先补最小集**：如果缺 `design_spec.md` / `slide_blueprint.md` / `deck.json`，先收齐再进 C1-C6
-- **必须先过 C0 轻量预览门禁**：没有 Phase A 图作为视觉证据时，先做 1-2 页”无文字背景 + 可编辑文字预览”，并落地 `phaseC/c0/deck.json`、`phaseC/c0/editor.html`、`phaseC/c0/preview/slide_*.png`；让用户确认视觉基准后再批量生成全套背景
+- **必须先过 C0 轻量预览门禁**：没有 Phase A 图作为视觉证据时，先做 1-2 页”重新生成的无字背景 + 可编辑文字预览”，并落地 `phaseC/c0/deck.json`、`phaseC/c0/editor.html`、`phaseC/c0/preview/slide_*.png`；让用户确认视觉基准后再批量生成全套背景
 - **不再主动询问 Phase C**：因为当前会话已经在 Phase C 路径里
 - **Phase C 完成即终态**：拿到可编辑 PPTX 后结束，不折返到其他路径
 
@@ -169,7 +169,7 @@ agent 在长对话里很容易忘记打开壳子，所以下面这两个动作�
 - **Phase A — 对话式定稿 + retouch（默认主路径）**
   Conversation-first + image-first 工作流：多阶段对话 → 内容基底 → 风格预览 → 风格反演确认 → 规划文件 → 每页定稿图 → 用户驱动的图像级 retouch（去水印 / 去瑕疵）。
 - **Phase C — 分层生成 + HTML 文字编辑（可编辑路径）**
-  Phase A 完成后**主动询问用户是否要可编辑文字版**。若用户同意，优先直接把 Phase A 的成品图当作 edit target 去字，再把文字作为外挂图层在 HTML 编辑器里调整 → 一键渲染成原生可编辑 PPTX。若直接编辑不干净，再回退到重生成背景 + 擦字稿。文字始终是真 TextBox（PPT 里可改）。
+  Phase A 完成后**主动询问用户是否要可编辑文字版**。若用户同意，Phase C 会以 Phase A 定稿图作为视觉参考，重新生成不含可编辑文字的背景层，再把文字作为外挂图层在 HTML 编辑器里调整 → 一键渲染成原生可编辑 PPTX。注意这不是从 Phase A 图片中精确抠掉文字，背景可能与 Phase A 定稿有细微差异；若直接编辑不干净，再回退到重生成背景 + 擦字稿。文字始终是真 TextBox（PPT 里可改）。
   如果用户一开始就明确要求只做可编辑版，则直接走 **Phase C-only**，不进入 Phase A。
 
 ```
@@ -200,7 +200,9 @@ agent 在长对话里很容易忘记打开壳子，所以下面这两个动作�
    │ "PPT 已交付。是否需要   │
    │  可编辑文字版（Phase C）│
    │  ——文字能在 PPT 里直接   │
-   │  改？这会重新生成背景，  │
+   │  改？这会参考定稿图重生  │
+   │  成无字背景，可能有细微 │
+   │  差异；                 │
    │  每页约 2 张 imagegen。" │
    └─────────┬─────────────┘
              │
@@ -277,7 +279,7 @@ PPT 主题 / 粗略目标 / 零散材料 / 已有报告稿；可选锚点（受�
 > 现在的成品是**图片版**，每页是一整张图——好处是视觉密度最高、跨平台不会跑版；缺点是文字不能在 PowerPoint 里直接改。
 >
 > 如果您后续可能要**改文字**（比如换日期、换名字、换关键数字、改标题措辞），我可以继续走 **Phase C** 给您出一份**文字可编辑版**：
-> - 重新生成背景图（保留装饰、擦掉可编辑文字）
+> - 参考当前定稿图重新生成无字背景（保留整体风格和装饰，预留文字区；不是从原图里精确抠字，可能有细微差异）
 > - 文字作为独立图层，在浏览器编辑器里调
 > - 一键渲染成原生可编辑 PPTX
 > - 大致成本：每页约 2 张 imagegen（背景完整稿 + 擦字稿），N 页约 X 次调用
@@ -526,7 +528,8 @@ python3 scripts/launch_iopaint.py --slides-dir phaseA/slides
 
 ### Hard Rules（Phase C 必守）
 - **沿用 Phase A 的 Stage 1-3**：需求 / 内容 / 风格 / 规划文件全部走 Phase A 已经做好的成果，不要重做。
-- **优先直编 Phase A 成品图**：Phase C 默认先把 Phase A 定稿图作为 imagegen edit target 去字；如果去字后不干净或留白不合规，再回退到重生成背景 + 擦字稿。
+- **以 Phase A 定稿作视觉参考**：Phase C 的用户承诺是参考 Phase A 结果重新生成无字背景，再叠加可编辑文字；不要把对外描述写成“从 A 图里精确抠掉文字”。背景可能与 Phase A 定稿有细微差异。
+- **优先直编 Phase A 成品图**：内部执行上仍默认先把 Phase A 定稿图作为 imagegen edit target 去字；如果去字后不干净或留白不合规，再回退到重生成背景 + 擦字稿。对用户说明时强调“参考定稿重新生成无字背景”，避免误解为像素级抠字。
 - **回退时再走两稿**：只有在直编失败时，才先出"完整稿"再以完整稿为 edit target 出"擦字稿"。不要把两稿逻辑当成默认必走。
 - **edit target 先看 Phase A 图**：默认先 `view_image` Phase A 定稿图，再调 imagegen，prompt 写"以刚刚显示的这张图片作为唯一编辑目标"。不要只写本地路径。
 - **detect_reserved_zones 不可跳**：每页擦字稿必须用 `scripts/detect_reserved_zones.py` 校验。不合规 → 重出 / IOPaint 局部擦。
@@ -544,7 +547,7 @@ python3 scripts/launch_iopaint.py --slides-dir phaseA/slides
 - **Phase C 完成 = 终态**：拿到可编辑 PPTX 后不要再追问 / 折返到其他路径。
 
 ### Phase C 流程极简版（C1-C6）
-1. **C1** 先直编 Phase A 成品图；不干净再回退到完整稿 → imagegen 擦字稿
+1. **C1** 以 Phase A 定稿作视觉参考生成无字背景；内部先尝试直编，不干净再回退到完整稿 → imagegen 擦字稿
 2. **C2** `scripts/detect_reserved_zones.py` 校验预留区
 3. **C3** 写 `phaseC/deck.json`（每页 background + text_boxes 初稿）
 4. **C4** `scripts/inject_editor_deck.py` 注入编辑器，生成 `editor.html`
