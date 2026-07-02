@@ -12,6 +12,7 @@
 - 只有一个主题，想让 AI 帮你补全结构和内容
 - 已经有报告、论文、讲稿或提纲，想转成视觉完成度更高的 PPT
 - 希望最终文字能在 PowerPoint / Keynote 里继续修改
+- 已经有 PDF 幻灯片，想转成可继续改字的 PPTX
 
 ---
 
@@ -34,7 +35,7 @@
 
 ---
 
-## 两种使用方式
+## 三种使用方式
 
 ### 方式一：先做图片版，再决定是否要可编辑文字版
 
@@ -57,6 +58,61 @@
 ```
 
 这时会直接进入可编辑版流程。它会先确认每页大纲，再做 1-2 页轻量预览，确认后才批量生成整套。
+
+### 方式三：把现有 PDF 幻灯片转成可编辑 PPTX
+
+如果你已经有一份 PDF 幻灯片，想把它变成后期可改字的版本，可以直接说：
+
+```text
+把这个 PDF PPT 转成可编辑 PPTX，我后面还要改里面的文字。
+```
+
+技能会：
+
+1. 先从 PDF 每页提取可编辑文字框
+2. 生成浏览器预览页让你确认 / 修改提取结果
+3. 生成无字背景图
+4. 接入可编辑文字编辑器并最终输出 PPTX
+
+如果你是在仓库里本地执行当前 MVP 版 Phase D，命令顺序如下：
+
+```bash
+# 1) 从 PDF 提取 review 初稿
+python3 scripts/pdf_extract_multimodal.py input.pdf -o phaseD/extraction.json
+
+# 2) 生成 review HTML
+python3 scripts/inject_extraction_review.py \
+    --shell assets/phaseD_extraction_review_shell/index.html \
+    --data phaseD/extraction.json \
+    --out phaseD/extraction_review.html
+
+# 约定：phaseD/extraction.json 里的 page_image 必须相对 phaseD 目录本身，
+# 例如 work/page_images/01.png，不要写成 phaseD/work/page_images/01.png
+
+# 3) 打开 phaseD/extraction_review.html，确认/修改文字框，
+#    然后把导出的内容保存成 phaseD/extraction_confirmed.json
+
+# 4) 生成 Phase C 背景图
+python3 scripts/generate_backgrounds_from_pdf.py \
+    --input phaseD/extraction_confirmed.json \
+    --output-dir phaseC/backgrounds
+
+# 5) 转成 Phase C deck，并顺手生成 editor.html
+python3 scripts/extraction_to_deck.py \
+    --input phaseD/extraction_confirmed.json \
+    --output phaseC/deck.json \
+    --editor-out phaseC/editor.html
+
+# 6) 在 phaseC/editor.html 里确认最终 deck 后，渲染 PPTX
+python3 scripts/json_to_pptx.py phaseC/deck.json \
+    -o phaseC/<主题>-editable.pptx \
+    --preview-dir phaseC/preview
+```
+
+说明：
+
+- `scripts/generate_backgrounds_from_pdf.py` 和 `scripts/extraction_to_deck.py` 都支持两种输入：纯 JSON，或 review 页导出的整段 sentinel 文本。
+- 当前 `image_only` / `rebuild` 页走的是可运行 MVP：本地脚本会先用确定性的 inpaint 擦掉文字区域；如果复杂背景还有瑕疵，再走现有 Phase C 的编辑器 / review / retouch 继续修。
 
 ---
 

@@ -1,0 +1,37 @@
+{
+  "source_pdf": "bad\u0000nameÌ†Ä.pdf",
+  "total_pages": 1,
+  "aspect_ratio": "16:9",
+  "pages": [
+    {
+      "page_index": 1,
+      "page_type": "contentÔøø",
+      "page_image": "tmp_phase_d_validation/phaseD/work/page_images/01.png\u0000",
+      "background_strategy": "clean",
+      "background_complexity": "simple",
+      "text_boxes": [
+        {
+          "id": "p1_t1",
+          "role": "titleÌøø",
+          "text": "Hello\u0000WorldÔ∑ê",
+          "bbox_norm": [
+            0.1,
+            0.2,
+            0.5,
+            0.1
+          ],
+          "font_size_est": 22,
+          "style_hint": {
+            "align": "left",
+            "weight": "bold",
+            "color": "#111111",
+            "italic": false
+          },
+          "confidence": 0.9,
+          "needs_review": false
+        }
+      ],
+      "issues": []
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "pages": [
+    {
+      "page_index": 1,
+      "page_type": "extractable_text",
+      "background_strategy": "clean",
+      "text_box_count": 5
+    },
+    {
+      "page_index": 2,
+      "page_type": "image_only",
+      "background_strategy": "rebuild",
+      "text_box_count": 0
+    }
+  ]
+}

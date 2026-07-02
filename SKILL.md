@@ -5,8 +5,9 @@ description: >-
   环境通过后走 conversation-first + image-first 工作流：多阶段对话、内容补强、风格预览、规划锁定、出每页定稿图，并在用户驱动下做图像级 retouch（去水印 / 去瑕疵，内置 IOPaint 自动安装）。最终交付高完成度图片型 PPTX。
   Phase A 结束后必须主动询问用户是否要可编辑文字版（Phase C）；若同意，进入 Phase C：以 Phase A 定稿图作为视觉参考，重新生成"带装饰、留白文字区"的无字背景图 + HTML 编辑器调文字 → 一键渲染原生可编辑 PPTX。
   用户明确要求"只做可编辑版 / 只跑 Phase C / 跳过图片版"时，直接进入 Phase C-only 模式，不执行 Phase A 的任何生成、预览、review、retouch。
-  ★ 当对话中出现 ===PPT-CRAFT-EDITABLE / DECK FROM EDITOR===、旧标记 ===PPT-IMAGE-FIRST-EDITABLE / DECK FROM EDITOR=== 或 ===DECK JSON BEGIN/END=== 标记时，agent 必须立刻把标记之间的 JSON 原样写入 phaseC/deck.json 并跑 scripts/json_to_pptx.py 渲染，不解读不修改不追问。
-  当用户需要做汇报 / 答辩 / 路演 / 提案 PPT，或只丢一个主题想要完整成品时使用。
+  ★ Phase D - PDF PPT编辑分支：用户上传 PDF 幻灯片时，自动判断每页是矢量文本还是图片型，用多模态模型抽取文案结构，在 HTML 预览页让用户确认后，生成无字背景 + 可编辑文字框，最终输出原生可编辑 PPTX。
+  ★ 当对话中出现 ===PPT-CRAFT-EDITABLE / DECK FROM EDITOR===、===PHASE-D / CONTENT EXTRACTION CONFIRMED===、旧标记 ===PPT-IMAGE-FIRST-EDITABLE / DECK FROM EDITOR=== 或 ===DECK JSON BEGIN/END=== 标记时，agent 必须立刻把标记之间的 JSON 原样写入对应文件并跑相应脚本，不解读不修改不追问。
+  当用户需要做汇报 / 答辩 / 路演 / 提案 PPT，或只丢一个主题想要完整成品，或上传 PDF 想转可编辑版时使用。
 ---
 
 # ppt-craft-editable — 一条龙 PPT 技能（自包含）
@@ -164,13 +165,15 @@ agent 在长对话里很容易忘记打开壳子，所以下面这两个动作�
 
 ---
 
-把两套互补能力融成一个 skill：
+把三套互补能力融成一个 skill：
 
 - **Phase A — 对话式定稿 + retouch（默认主路径）**
   Conversation-first + image-first 工作流：多阶段对话 → 内容基底 → 风格预览 → 风格反演确认 → 规划文件 → 每页定稿图 → 用户驱动的图像级 retouch（去水印 / 去瑕疵）。
 - **Phase C — 分层生成 + HTML 文字编辑（可编辑路径）**
   Phase A 完成后**主动询问用户是否要可编辑文字版**。若用户同意，Phase C 会以 Phase A 定稿图作为视觉参考，重新生成不含可编辑文字的背景层，再把文字作为外挂图层在 HTML 编辑器里调整 → 一键渲染成原生可编辑 PPTX。注意这不是从 Phase A 图片中精确抠掉文字，背景可能与 Phase A 定稿有细微差异；若直接编辑不干净，再回退到重生成背景 + 擦字稿。文字始终是真 TextBox（PPT 里可改）。
   如果用户一开始就明确要求只做可编辑版，则直接走 **Phase C-only**，不进入 Phase A。
+- **Phase D — PDF PPT 编辑分支（PDF 导入路径）**
+  用户上传 PDF 幻灯片时，自动判断每页是矢量文本（可直接提取）还是图片型（需多模态理解）。用多模态模型抽取文案结构、角色、位置，生成 extraction.json 并在 HTML 预览页让用户确认。确认后按背景策略（clean 擦字 / rebuild 重建）生成无字背景，写入 phaseC/deck.json，接入 Phase C 编辑器（C4-C6）最终输出可编辑 PPTX。
 
 ```
 [用户的模糊需求]
@@ -247,16 +250,25 @@ agent 在长对话里很容易忘记打开壳子，所以下面这两个动作�
 - **文字可编辑 `.pptx`**（背景 = Picture，文字 = 真 TextBox，跨平台稳定）
 - 可选 `phaseC/preview/slide_NN.png` 近似对照图
 
+### Phase D 交付（PDF 导入路径）
+- `phaseD/extraction.json`（初版抽取结果）
+- `phaseD/extraction_review.html`（HTML 预览页）
+- `phaseD/extraction_confirmed.json`（用户确认后的版本）
+- 每页背景图 `phaseC/backgrounds/NN.png`（clean 擦字或 rebuild 重建）
+- `phaseC/deck.json`（从 extraction 转换而来）
+- **文字可编辑 `.pptx`**（最终产物，接入 Phase C 渲染管道）
+
 ### 输入
-PPT 主题 / 粗略目标 / 零散材料 / 已有报告稿；可选锚点（受众、页数、身份锚点、用途场景、参考图、风格倾向）。
+PPT 主题 / 粗略目标 / 零散材料 / 已有报告稿 / PDF 幻灯片；可选锚点（受众、页数、身份锚点、用途场景、参考图、风格倾向）。
 
 ### 确认门禁
 - **5 个必有门禁**（Phase A）：需求确认 → **页大纲确认** → 风格确认 → 生成前确认 → 终图评审
 - **第 4 个门禁（强制主动询问）**：Phase A 终图交付后**必须主动问**用户是否需要 Phase C 可编辑文字版
 - **Phase C 内的门禁**：用户在 HTML 编辑器里点 "导出 deck.json" 表示满意
+- **Phase D 内的门禁（G-D-ContentConfirm）**：用户在 extraction_review.html 里确认/修改文案后点"导出确认"
 
 ### 比例
-默认 `16:9`。**Phase A 与 Phase C 全程必须同一比例**，禁止中途切换。
+默认 `16:9`。**Phase A/C/D 全程必须同一比例**，禁止中途切换。
 
 ---
 
@@ -374,7 +386,7 @@ Phase C editor.html 里用户点”导出 / 继续生成”后会得到一段带
 
 ---
 
-## 何时使用本技能 / 何时只走 Phase A / 何时上 Phase C
+## 何时使用本技能 / 何时只走 Phase A / 何时上 Phase C / 何时走 Phase D
 
 | 用户场景 | 路径 |
 |---|---|
@@ -384,6 +396,50 @@ Phase C editor.html 里用户点”导出 / 继续生成”后会得到一段带
 | Phase A 完成后用户说要可编辑 | **Phase A → Phase C**（按上面"主动询问"规则） |
 | 用户一开始就说"要可编辑 / 后期改字" | **Phase C-only**（先补最小输入，再跑 C1-C6） |
 | 用户明确说"只做可编辑版 / 跳过图片版" | **Phase C-only** |
+| 用户上传 PDF 幻灯片想转可编辑版 | **Phase D**（PDF 导入路径） |
+| 用户说"把这个 PDF PPT 转成可以改字的" | **Phase D** |
+| 用户提供 PDF + 明确说要编辑文字 | **Phase D** |
+
+---
+
+## ★ Phase D 入口与 Sentinel 处理规则
+
+### 触发条件
+
+当用户满足以下任一条件时，进入 Phase D：
+- 上传或提供 PDF 文件路径，并提到"转成可编辑" / "想改文字" / "PPT 编辑"
+- 明确说"把 PDF 转成 PPTX" / "PDF 转可编辑 PPT"
+- 提供 PDF 并询问能否编辑其中内容
+
+### Phase D Sentinel 标记
+
+当对话中出现以下标记时：
+
+```
+===PHASE-D / CONTENT EXTRACTION CONFIRMED===
+
+本次从 PDF 提取了 N 页内容，已在预览页确认。
+
+===EXTRACTION JSON BEGIN===
+{ ... }
+===EXTRACTION JSON END===
+```
+
+agent 必须：
+1. 把 `===EXTRACTION JSON BEGIN/END===` 之间的内容**原样**写入 `phaseD/extraction_confirmed.json`
+2. 不解读、不修改、不追问 JSON 内容
+3. 直接进入 D3 背景处理：
+   - 简单页（strategy: "clean"）→ 擦字保留原背景
+   - 复杂页（strategy: "rebuild"）→ 仿照重建背景
+4. 生成 `phaseC/backgrounds/*.png`
+5. 把 extraction.json 转成 `phaseC/deck.json`
+6. 接入 Phase C 编辑器（C4-C6）
+
+### Phase D 不做的事
+
+- ❌ 不主动询问是否进入 Phase C（Phase D 本身就是为可编辑而生）
+- ❌ 不跑 Phase A 的任何阶段（风格预览、规划文件、定稿图）
+- ❌ 不生成图片型 PPTX（Phase D 直接输出可编辑版）
 
 ---
 
@@ -408,6 +464,8 @@ Phase C editor.html 里用户点”导出 / 继续生成”后会得到一段带
 | 写 `slide_blueprint.md` | `templates/slide_blueprint_reference.md` |
 | 写 `spec_lock.md` | `templates/spec_lock_reference.md` |
 | **Phase C 总流程**（用户同意进 Phase C 时） | `references/phaseC/workflow.md` |
+| **Phase D 总流程**（用户上传 PDF 时） | `references/phaseD/workflow.md` |
+| Phase D extraction.json schema | `references/phaseD/extraction-schema.md` |
 | 端到端运行手册 + 失败排错 | `references/pipeline.md` |
 
 ---

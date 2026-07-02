@@ -1,0 +1,31 @@
+你正在分析第 2 页 PPT 幻灯片图片。
+
+任务：提取页面上所有需要转成可编辑文本框的内容。
+
+输出 JSON 格式：
+{
+  "page_type": "cover | toc | content | divider",
+  "background_strategy": "clean | rebuild",
+  "background_complexity": "simple | moderate | complex",
+  "text_boxes": [
+    {
+      "role": "title | subtitle | body | footer | caption | label",
+      "text": "实际文字内容",
+      "bbox_norm": [x, y, width, height],
+      "font_size_est": 28,
+      "style_hint": {
+        "align": "left | center | right",
+        "weight": "regular | bold",
+        "color": "#FFFFFF"
+      },
+      "confidence": 0.95
+    }
+  ]
+}
+
+规则：
+1. bbox_norm 是归一化坐标，左上角 (0,0)，右下角 (1,1)
+2. 标题、副标题、正文、页脚等要分开识别
+3. 不要遗漏小字（比如页脚、免责声明）
+4. 阅读顺序要正确（左到右、上到下）
+5. 如果背景简单（纯色/渐变），推荐 "clean"；如果背景复杂（照片/图案），推荐 "rebuild"

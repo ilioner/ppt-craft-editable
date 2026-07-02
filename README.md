@@ -12,6 +12,7 @@ Suitable for these scenarios:
 - Having only a topic and wanting the AI to help you complete the structure and content.
 - Already having reports, papers, lecture drafts, or outlines, and wanting to convert them into PPTs with higher visual fidelity.
 - Wishing the final text to remain editable in PowerPoint / Keynote.
+- **Converting existing PDF presentations into editable PPTX format.**
 
 ---
 
@@ -30,11 +31,17 @@ If you choose to continue and make the text-editable version, you will also get:
 - `deck.json`, which records the position, font, font size, and color of each text box
 - Optional preview images for easy verification of the final layout
 
+If you upload a PDF presentation, you will get:
+
+- Content extraction preview in browser
+- Text-editable PPTX with preserved or rebuilt backgrounds
+- All text content as editable text boxes
+
 In the text-editable version, the background is an image, while the titles, body text, numbers, dates, signatures, etc., are real text boxes in the PPT and can be edited directly.
 
 ---
 
-## Two Ways to Use
+## Three Ways to Use
 
 ### Method 1: Make the image-based version first, then decide whether to make the text-editable version
 
@@ -57,6 +64,61 @@ Only make the text-editable PPTX, do not make the image-based version first. The
 ```
 
 At this point, it will directly enter the editable workflow. It will first confirm the outline of each page, then make a 1-2 page lightweight preview. After confirmation, it will batch-generate the entire set.
+
+### Method 3: Convert PDF presentation to editable PPTX
+
+If you have an existing PDF presentation and want to make it editable:
+
+```text
+Convert this PDF presentation to an editable PPTX where I can modify the text.
+```
+
+The skill will:
+1. Extract content from each page (using multimodal AI for image-based PDFs)
+2. Show you an interactive preview to confirm/edit the extracted text
+3. Generate clean backgrounds (either by removing text or rebuilding)
+4. Create an editable PPTX with text boxes
+
+For repository-local execution, the current MVP Phase D flow is:
+
+```bash
+# 1) Extract reviewable content from the PDF
+python3 scripts/pdf_extract_multimodal.py input.pdf -o phaseD/extraction.json
+
+# 2) Build the review HTML
+python3 scripts/inject_extraction_review.py \
+    --shell assets/phaseD_extraction_review_shell/index.html \
+    --data phaseD/extraction.json \
+    --out phaseD/extraction_review.html
+
+# Contract: page_image inside phaseD/extraction.json must be relative to the
+# phaseD directory itself, e.g. work/page_images/01.png
+
+# 3) Open phaseD/extraction_review.html in a browser, edit text boxes,
+#    then copy the exported sentinel package back into:
+#    phaseD/extraction_confirmed.json or any .txt file
+
+# 4) Generate Phase C backgrounds from the confirmed extraction
+python3 scripts/generate_backgrounds_from_pdf.py \
+    --input phaseD/extraction_confirmed.json \
+    --output-dir phaseC/backgrounds
+
+# 5) Convert confirmed extraction into Phase C deck + editor
+python3 scripts/extraction_to_deck.py \
+    --input phaseD/extraction_confirmed.json \
+    --output phaseC/deck.json \
+    --editor-out phaseC/editor.html
+
+# 6) After the user confirms/export the final deck in phaseC/editor.html,
+#    render the PPTX
+python3 scripts/json_to_pptx.py phaseC/deck.json \
+    -o phaseC/<topic>-editable.pptx \
+    --preview-dir phaseC/preview
+```
+
+Notes:
+- `scripts/generate_backgrounds_from_pdf.py` and `scripts/extraction_to_deck.py` both accept either raw JSON or the full sentinel-wrapped export text from the review page.
+- `image_only` / `rebuild` pages currently use a deterministic local MVP: the script removes detected text regions with local inpainting, and any remaining visual cleanup goes through the existing Phase C editor / review / retouch flow.
 
 ---
 

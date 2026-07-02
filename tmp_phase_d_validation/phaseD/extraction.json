@@ -1,0 +1,133 @@
+{
+  "source_pdf": "tmp_phase_d_validation/sample.pdf",
+  "total_pages": 2,
+  "aspect_ratio": "16:9",
+  "extraction_method": "pdf_parse",
+  "pages": [
+    {
+      "page_index": 1,
+      "page_type": "extractable_text",
+      "page_image": "work/page_images/01.png",
+      "background_strategy": "clean",
+      "background_complexity": "simple",
+      "text_boxes": [
+        {
+          "id": "p1_t1",
+          "role": "title",
+          "text": "Phase D Validation Title",
+          "bbox_norm": [
+            0.0833,
+            0.1109,
+            0.3112,
+            0.0712
+          ],
+          "font_size_est": 28.0,
+          "style_hint": {
+            "align": "left",
+            "weight": "regular",
+            "color": "#000000",
+            "italic": false
+          },
+          "confidence": 0.98,
+          "needs_review": false
+        },
+        {
+          "id": "p1_t2",
+          "role": "subtitle",
+          "text": "Subtitle for extraction check",
+          "bbox_norm": [
+            0.0833,
+            0.2327,
+            0.2303,
+            0.0458
+          ],
+          "font_size_est": 18.0,
+          "style_hint": {
+            "align": "left",
+            "weight": "regular",
+            "color": "#000000",
+            "italic": false
+          },
+          "confidence": 0.98,
+          "needs_review": false
+        },
+        {
+          "id": "p1_t3",
+          "role": "body",
+          "text": "First bullet of body content",
+          "bbox_norm": [
+            0.0833,
+            0.3795,
+            0.171,
+            0.0356
+          ],
+          "font_size_est": 14.0,
+          "style_hint": {
+            "align": "left",
+            "weight": "regular",
+            "color": "#000000",
+            "italic": false
+          },
+          "confidence": 0.98,
+          "needs_review": false
+        },
+        {
+          "id": "p1_t4",
+          "role": "body",
+          "text": "Second bullet of body content",
+          "bbox_norm": [
+            0.0833,
+            0.4351,
+            0.1921,
+            0.0356
+          ],
+          "font_size_est": 14.0,
+          "style_hint": {
+            "align": "left",
+            "weight": "regular",
+            "color": "#000000",
+            "italic": false
+          },
+          "confidence": 0.98,
+          "needs_review": false
+        },
+        {
+          "id": "p1_t5",
+          "role": "footer",
+          "text": "Footer note",
+          "bbox_norm": [
+            0.7917,
+            0.9245,
+            0.0533,
+            0.0254
+          ],
+          "font_size_est": 10.0,
+          "style_hint": {
+            "align": "right",
+            "weight": "regular",
+            "color": "#000000",
+            "italic": false
+          },
+          "confidence": 0.98,
+          "needs_review": false
+        }
+      ],
+      "issues": []
+    },
+    {
+      "page_index": 2,
+      "page_type": "image_only",
+      "page_image": "work/page_images/02.png",
+      "background_strategy": "rebuild",
+      "background_complexity": "complex",
+      "text_boxes": [],
+      "issues": [
+        {
+          "type": "missing_text",
+          "description": "该页未检测到可直接提取的 PDF 文本，请在 review 页手动补录需要编辑的文本框。",
+          "box_ids": []
+        }
+      ]
+    }
+  ]
+}

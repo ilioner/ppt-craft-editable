@@ -1,0 +1,134 @@
+{
+  "deck": {
+    "ratio": "16:9",
+    "default_font": "PingFang SC",
+    "default_font_size_pt": 18.3,
+    "default_color": "#000000"
+  },
+  "slides": [
+    {
+      "id": "01-extractable_text",
+      "background": "backgrounds/01.png",
+      "text_boxes": [
+        {
+          "id": "p1_t1",
+          "text": "Phase D Validation Title",
+          "x": 0.0833,
+          "y": 0.1109,
+          "w": 0.3112,
+          "h": 0.0712,
+          "font_family": "PingFang SC",
+          "font_size_pt": 28.0,
+          "color": "#000000",
+          "bold": false,
+          "italic": false,
+          "align": "left",
+          "valign": "top",
+          "line_spacing": 1.2
+        },
+        {
+          "id": "p1_t2",
+          "text": "Subtitle for extraction check",
+          "x": 0.0833,
+          "y": 0.2327,
+          "w": 0.2303,
+          "h": 0.0458,
+          "font_family": "PingFang SC",
+          "font_size_pt": 18.0,
+          "color": "#000000",
+          "bold": false,
+          "italic": false,
+          "align": "left",
+          "valign": "top",
+          "line_spacing": 1.2
+        },
+        {
+          "id": "p1_t3",
+          "text": "First bullet of body content",
+          "x": 0.0833,
+          "y": 0.3795,
+          "w": 0.171,
+          "h": 0.0356,
+          "font_family": "PingFang SC",
+          "font_size_pt": 14.0,
+          "color": "#000000",
+          "bold": false,
+          "italic": false,
+          "align": "left",
+          "valign": "top",
+          "line_spacing": 1.2
+        },
+        {
+          "id": "p1_t4",
+          "text": "Second bullet of body content",
+          "x": 0.0833,
+          "y": 0.4351,
+          "w": 0.1921,
+          "h": 0.0356,
+          "font_family": "PingFang SC",
+          "font_size_pt": 14.0,
+          "color": "#000000",
+          "bold": false,
+          "italic": false,
+          "align": "left",
+          "valign": "top",
+          "line_spacing": 1.2
+        },
+        {
+          "id": "p1_t5",
+          "text": "Footer note",
+          "x": 0.7917,
+          "y": 0.9245,
+          "w": 0.0533,
+          "h": 0.0254,
+          "font_family": "PingFang SC",
+          "font_size_pt": 10.0,
+          "color": "#000000",
+          "bold": false,
+          "italic": false,
+          "align": "right",
+          "valign": "top",
+          "line_spacing": 1.2
+        }
+      ]
+    },
+    {
+      "id": "02-image_only",
+      "background": "backgrounds/02.png",
+      "text_boxes": [
+        {
+          "id": "p2_t1",
+          "text": "IMAGE ONLY PAGE",
+          "x": 0.18,
+          "y": 0.15,
+          "w": 0.42,
+          "h": 0.09,
+          "font_family": "PingFang SC",
+          "font_size_pt": 26.0,
+          "color": "#FFFFFF",
+          "bold": true,
+          "italic": false,
+          "align": "left",
+          "valign": "top",
+          "line_spacing": 1.2
+        },
+        {
+          "id": "p2_t2",
+          "text": "Needs manual review boxes",
+          "x": 0.18,
+          "y": 0.27,
+          "w": 0.42,
+          "h": 0.07,
+          "font_family": "PingFang SC",
+          "font_size_pt": 18.0,
+          "color": "#F1FAEE",
+          "bold": false,
+          "italic": false,
+          "align": "left",
+          "valign": "top",
+          "line_spacing": 1.2
+        }
+      ]
+    }
+  ]
+}

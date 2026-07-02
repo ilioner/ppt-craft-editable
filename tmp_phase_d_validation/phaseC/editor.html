@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Phase C — 文字编辑器</title>
+<style>
+  :root {
+    --bg: #f5f1ea;
+    --panel: #ffffff;
+    --panel-strong: #fbf8f1;
+    --line: rgba(40, 30, 18, 0.12);
+    --line-strong: rgba(40, 30, 18, 0.25);
+    --text: #1a1610;
+    --muted: #6b5d4c;
+    --accent: #b9501e;
+    --accent-soft: #f4dccb;
+    --shadow: 0 14px 38px rgba(60, 35, 12, 0.10);
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI Variable Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background:
+      radial-gradient(circle at top left, rgba(255, 197, 147, 0.32), transparent 30%),
+      radial-gradient(circle at top right, rgba(130, 184, 255, 0.18), transparent 24%),
+      linear-gradient(180deg, #faf6f0 0%, var(--bg) 40%, #efe8dc 100%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 18px;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 240px 1fr 320px;
+    grid-template-rows: auto 1fr;
+    gap: 14px;
+    max-width: 1700px;
+    margin: 0 auto;
+  }
+
+  /* ─── 顶栏 ─── */
+  .topbar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 18px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+  }
+  .topbar h1 {
+    margin: 0;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+  }
+  .topbar .sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 2px;
+  }
+  .topbar .actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 8px 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--panel-strong);
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .btn:hover { background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
+  .btn.primary { background: var(--text); color: #fff7ea; border-color: var(--text); }
+  .btn.primary:hover { background: #2c2418; }
+  .btn.danger { background: #fef2ec; color: #a8421c; border-color: #f0c1a8; }
+
+  /* ─── 左侧页面列表 ─── */
+  .pages {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    box-shadow: var(--shadow);
+    max-height: calc(100vh - 110px);
+    overflow-y: auto;
+  }
+  .pages h2 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .page-item {
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid transparent;
+    margin-bottom: 4px;
+  }
+  .page-item:hover { background: var(--panel-strong); }
+  .page-item.active {
+    background: var(--accent-soft);
+    border-color: rgba(185, 80, 30, 0.25);
+    color: #6b2a08;
+  }
+  .page-item .num {
+    background: rgba(0,0,0,0.06);
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ─── 中间画布 ─── */
+  .canvas-wrap {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+  }
+  .canvas-wrap .hint {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+  .canvas {
+    position: relative;
+    background: #2a2218;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    max-width: 1100px;
+    box-shadow: 0 10px 26px rgba(0,0,0,0.18);
+    /* 关键：所有子元素用 fraction 定位 */
+  }
+  .canvas .bg-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;  /* 背景不接收事件 */
+    user-select: none;
+  }
+  .text-box {
+    position: absolute;
+    border: 1.5px dashed transparent;
+    border-radius: 4px;
+    padding: 4px;
+    cursor: move;
+    color: #1a1a1a;
+    overflow: hidden;
+    transition: border-color 0.1s ease, background 0.1s ease;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+  }
+  .text-box:hover {
+    border-color: rgba(185, 80, 30, 0.45);
+    background: rgba(255, 252, 245, 0.55);
+  }
+  .text-box.selected {
+    border-color: rgba(185, 80, 30, 0.85);
+    background: rgba(255, 251, 240, 0.72);
+    box-shadow: 0 0 0 3px rgba(185, 80, 30, 0.12);
+  }
+  .text-box[contenteditable="true"] {
+    cursor: text;
+    outline: none;
+    background: rgba(255, 255, 255, 0.85);
+  }
+  .resize-handle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--accent);
+    border: 1.5px solid #fff;
+    border-radius: 2px;
+    cursor: nwse-resize;
+    z-index: 5;
+  }
+  .resize-handle.br {
+    bottom: -8px;
+    right: -8px;
+  }
+  .resize-handle.tl {
+    top: -8px;
+    left: -8px;
+    cursor: nwse-resize;
+  }
+  .resize-handle.tr {
+    top: -8px;
+    right: -8px;
+    cursor: nesw-resize;
+  }
+  .resize-handle.bl {
+    bottom: -8px;
+    left: -8px;
+    cursor: nesw-resize;
+  }
+
+  /* ─── 背景反馈模式 ─── */
+  .canvas.review-mode .text-box {
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.78;
+  }
+  .canvas.review-mode .resize-handle { display: none; }
+  .review-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 4;
+    pointer-events: none;
+    touch-action: none;
+  }
+  .canvas.review-mode .review-canvas {
+    pointer-events: auto;
+    cursor: crosshair;
+  }
+  .review-notes {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+  }
+  .review-note-pin {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 800;
+    box-shadow: 0 6px 14px rgba(54,32,10,.24);
+  }
+  .mode-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: var(--panel-strong);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    flex-wrap: wrap;
+  }
+  .mode-toolbar .tool-chip {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: #fff;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .mode-toolbar .tool-chip.active {
+    background: var(--text);
+    color: #fff7ea;
+    border-color: var(--text);
+  }
+  .mode-toolbar .inline-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .mode-toolbar .review-only { display: none; }
+  .mode-toolbar[data-mode='review'] .review-only { display: inline-flex; }
+  .mode-toolbar[data-mode='review'] .text-only { display: none; }
+  .page-item .badge {
+    margin-left: auto;
+    background: var(--accent-soft);
+    color: #6b2a08;
+    border-radius: 999px;
+    padding: 1px 7px;
+    font-size: 11px;
+  }
+
+  /* ─── 右侧属性面板 ─── */
+  .props {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    box-shadow: var(--shadow);
+    max-height: calc(100vh - 110px);
+    overflow-y: auto;
+  }
+  .props h2 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .props .empty {
+    color: var(--muted);
+    font-size: 13px;
+    padding: 12px;
+    background: var(--panel-strong);
+    border-radius: var(--radius-sm);
+  }
+  .field {
+    margin-bottom: 10px;
+  }
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    padding: 7px 9px;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    font-size: 13px;
+    background: #fff;
+    font-family: inherit;
+  }
+  .field textarea {
+    min-height: 60px;
+    resize: vertical;
+  }
+  .row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .row3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+  .toggle-group {
+    display: flex;
+    gap: 4px;
+  }
+  .toggle-group button {
+    flex: 1;
+    padding: 7px 8px;
+    font-size: 12px;
+    background: #fff;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .toggle-group button.active {
+    background: var(--text);
+    color: #fff7ea;
+    border-color: var(--text);
+  }
+  .props-section {
+    border-top: 1px solid var(--line);
+    margin-top: 16px;
+    padding-top: 14px;
+  }
+  .props-section:first-of-type {
+    border-top: 0;
+    margin-top: 0;
+    padding-top: 0;
+  }
+  .actions-inline {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .actions-inline .btn {
+    flex: 1;
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  /* ─── 模态：导出 / 帮助 ─── */
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 14, 8, 0.6);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .modal.open { display: flex; }
+  .modal-panel {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    max-width: 720px;
+    width: 100%;
+    max-height: calc(100vh - 60px);
+    overflow-y: auto;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+  }
+  .modal-panel h3 {
+    margin: 0 0 12px;
+  }
+  .modal-panel textarea {
+    width: 100%;
+    min-height: 320px;
+    font-family: "Menlo", "Consolas", monospace;
+    font-size: 12px;
+    padding: 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    background: #fafaf6;
+  }
+  .modal-panel .row {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 14px;
+  }
+  .modal-panel .hint {
+    color: var(--muted);
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+</style>
+
+<script>window.__phaseCDeck = {"deck": {"ratio": "16:9", "default_font": "PingFang SC", "default_font_size_pt": 18.3, "default_color": "#000000"}, "slides": [{"id": "01-extractable_text", "background": "backgrounds/01.png", "text_boxes": [{"id": "p1_t1", "text": "Phase D Validation Title", "x": 0.0833, "y": 0.1109, "w": 0.3112, "h": 0.0712, "font_family": "PingFang SC", "font_size_pt": 28.0, "color": "#000000", "bold": false, "italic": false, "align": "left", "valign": "top", "line_spacing": 1.2}, {"id": "p1_t2", "text": "Subtitle for extraction check", "x": 0.0833, "y": 0.2327, "w": 0.2303, "h": 0.0458, "font_family": "PingFang SC", "font_size_pt": 18.0, "color": "#000000", "bold": false, "italic": false, "align": "left", "valign": "top", "line_spacing": 1.2}, {"id": "p1_t3", "text": "First bullet of body content", "x": 0.0833, "y": 0.3795, "w": 0.171, "h": 0.0356, "font_family": "PingFang SC", "font_size_pt": 14.0, "color": "#000000", "bold": false, "italic": false, "align": "left", "valign": "top", "line_spacing": 1.2}, {"id": "p1_t4", "text": "Second bullet of body content", "x": 0.0833, "y": 0.4351, "w": 0.1921, "h": 0.0356, "font_family": "PingFang SC", "font_size_pt": 14.0, "color": "#000000", "bold": false, "italic": false, "align": "left", "valign": "top", "line_spacing": 1.2}, {"id": "p1_t5", "text": "Footer note", "x": 0.7917, "y": 0.9245, "w": 0.0533, "h": 0.0254, "font_family": "PingFang SC", "font_size_pt": 10.0, "color": "#000000", "bold": false, "italic": false, "align": "right", "valign": "top", "line_spacing": 1.2}]}, {"id": "02-image_only", "background": "backgrounds/02.png", "text_boxes": [{"id": "p2_t1", "text": "IMAGE ONLY PAGE", "x": 0.18, "y": 0.15, "w": 0.42, "h": 0.09, "font_family": "PingFang SC", "font_size_pt": 26.0, "color": "#FFFFFF", "bold": true, "italic": false, "align": "left", "valign": "top", "line_spacing": 1.2}, {"id": "p2_t2", "text": "Needs manual review boxes", "x": 0.18, "y": 0.27, "w": 0.42, "h": 0.07, "font_family": "PingFang SC", "font_size_pt": 18.0, "color": "#F1FAEE", "bold": false, "italic": false, "align": "left", "valign": "top", "line_spacing": 1.2}]}]};</script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div>
+        <h1 id="topTitle">Phase C — 文字编辑器</h1>
+        <div class="sub" id="topSub">在背景图的预留区域内调整文字内容、位置与样式</div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="btnAnnotToggle">🖊 背景反馈</button>
+        <button class="btn" id="btnAdd">+ 添加文字框</button>
+        <button class="btn" id="btnImport">导入 deck.json</button>
+        <button class="btn primary" id="btnExport">导出 / 继续生成</button>
+        <button class="btn" id="btnHelp">?</button>
+      </div>
+    </header>
+
+    <aside class="pages">
+      <h2>页面</h2>
+      <div id="pageList"></div>
+    </aside>
+
+    <main class="canvas-wrap">
+      <!-- 模式工具栏：文字模式 / 背景反馈模式共用，通过 data-mode 切换显示 -->
+      <div class="mode-toolbar" id="modeToolbar" data-mode="text">
+        <span class="text-only" style="font-size:12px;color:var(--muted);">文字编辑模式 — 单击选中文字框，双击编辑</span>
+        <span class="review-only inline-field" style="font-weight:600;font-size:13px;">背景反馈模式</span>
+        <button class="tool-chip review-only active" data-rtool="rect">矩形框选</button>
+        <button class="tool-chip review-only" data-rtool="pen">画笔</button>
+        <button class="tool-chip review-only" data-rtool="note">注释点</button>
+        <label class="review-only inline-field">线宽 <input type="range" min="2" max="14" value="4" id="rStrokeWidth"></label>
+        <label class="review-only inline-field">颜色 <input type="color" value="#b9501e" id="rStrokeColor"></label>
+        <button class="btn review-only" id="rUndo" style="padding:5px 10px;font-size:12px;">撤销</button>
+        <button class="btn review-only" id="rClearPage" style="padding:5px 10px;font-size:12px;">清空本页</button>
+      </div>
+      <div class="canvas" id="canvas">
+        <!-- 背景反馈画布（持久存在，不被 renderCanvas 清除）-->
+        <canvas class="review-canvas" id="reviewCanvas"></canvas>
+        <div class="review-notes" id="reviewNotes"></div>
+      </div>
+    </main>
+
+    <aside class="props" id="propsPanel">
+      <h2>属性</h2>
+      <!-- 文字框属性面板 -->
+      <div id="textPropsWrap">
+        <div class="empty" id="propsEmpty">点击画布上的文字框可编辑其属性。</div>
+        <div id="propsForm" style="display:none;"></div>
+      </div>
+      <!-- 背景反馈面板（反馈模式时显示） -->
+      <div id="reviewPropsWrap" style="display:none;">
+        <div class="props-section">
+          <div class="field">
+            <label>建议动作</label>
+            <select id="r_action">
+              <option value="retouch-local">局部修补</option>
+              <option value="regenerate-background">重生成背景</option>
+              <option value="adjust-text-zones">调整文字留白区</option>
+              <option value="approved">本页通过 ✓</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>本页背景意见</label>
+            <textarea id="r_comment" placeholder="描述背景要改的地方，会一起发回给 AI…" style="min-height:80px;"></textarea>
+          </div>
+          <div class="field">
+            <label>定位注释</label>
+            <div id="r_noteList" style="display:grid;gap:8px;"></div>
+          </div>
+        </div>
+        <div class="props-section" style="color:var(--muted);font-size:12px;line-height:1.6;">
+          在画布上框选/画笔/放注释点标出背景要改的区域。<br>
+          文字框的字号/位置调整切回文字模式后进行。
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- 导出/导入模态 -->
+  <div class="modal" id="ioModal">
+    <div class="modal-panel">
+      <h3 id="ioTitle">导出 / 继续生成</h3>
+      <div class="hint" id="ioHint">
+        你有两个出口：<br>
+        1. 不再编辑，直接用当前系统给的 deck.json 生成 PPTX<br>
+        2. 继续编辑后，把整段内容（带标记）粘回对话框
+      </div>
+      <div id="ioBigCopyHint" style="display:none; padding: 12px 14px; margin-bottom: 10px; background: #fff4e8; border: 1px solid #f0c1a8; border-radius: 8px; font-size: 13px; line-height: 1.6;">
+        <b style="color:#a8421c;">⚠️ 重要：把下面整段（带 ===DECK JSON=== 标记的全部内容）发回给 AI</b>，
+        AI 看到标记会知道要保存 + 渲染 PPTX。<br>
+        <b>不要</b>只复制中间的 JSON 部分；<b>不要</b>另起一句话发出去；
+        <b>直接整段贴到 AI 对话框</b>即可。
+      </div>
+      <textarea id="ioText" spellcheck="false"></textarea>
+      <div class="row">
+        <button class="btn" id="ioClose">关闭</button>
+        <button class="btn" id="ioDownload" style="display:none;">下载 deck.json 文件</button>
+        <button class="btn primary" id="ioCopy">📋 复制整段（推荐）</button>
+        <button class="btn primary" id="ioApply" style="display:none;">应用导入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 帮助 -->
+  <div class="modal" id="helpModal">
+    <div class="modal-panel">
+      <h3>使用说明</h3>
+      <ul style="line-height:1.7; font-size:14px;">
+        <li><b>左侧</b>切换页面，<b>中间</b>是当前页的画布，<b>右侧</b>编辑选中文字框的属性</li>
+        <li>单击文字框 → 选中；选中状态拖动 = 移动；右下角点拖 = 缩放</li>
+        <li>双击文字框 → 进入文字编辑（contentEditable），Esc 退出</li>
+        <li>选中后按 <b>Delete</b>（非编辑态）删除该文字框；按 <b>Backspace</b> 则进入编辑态并删一字</li>
+        <li>顶栏 <b>+ 添加文字框</b> 在画布中央插入一个新的</li>
+        <li>所有坐标都是 0-1 的 fraction（左上为原点），跟 PPTX 渲染器同语义</li>
+        <li>字体只在 PingFang/Microsoft YaHei/Hiragino/Arial/Helvetica 等系统安全字体里选，避免 PPTX 跨平台跑偏</li>
+        <li>改完后可以直接生成，也可以把整段 deck 贴回对话框再生成</li>
+      </ul>
+      <div class="row">
+        <button class="btn primary" id="helpClose">知道了</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/*
+ * Phase C 编辑器
+ *
+ * 数据模型完全对齐 json_to_pptx.py：
+ *   deck.json:
+ *     - deck: { ratio, slide_width_in, slide_height_in, default_font, default_font_size_pt, default_color }
+ *     - slides: [ { id, background, text_boxes: [ {id, text, x, y, w, h, font_family, font_size_pt, color, bold, italic, align, valign, line_spacing} ] } ]
+ *
+ * 坐标：所有 (x, y, w, h) 都是 0-1 的 fraction，左上原点。
+ *
+ * 注入方式（外部）：在打开 HTML 前，给 window.__phaseCDeck 赋值，或者点"导入 deck.json"贴上去。
+ */
+
+// ─────────────────────────────────────────────────────────
+// 默认 deck（无注入时的示例）
+// ─────────────────────────────────────────────────────────
+
+const DEFAULT_DECK = {
+  deck: {
+    ratio: "16:9",
+    slide_width_in: 13.333,
+    slide_height_in: 7.5,
+    default_font: "PingFang SC",
+    default_font_size_pt: 18,
+    default_color: "#1a1a1a"
+  },
+  slides: [
+    {
+      id: "01-cover",
+      background: "",
+      text_boxes: [
+        {
+          id: "tb-title",
+          text: "演示稿标题",
+          x: 0.08, y: 0.32, w: 0.62, h: 0.18,
+          font_family: "PingFang SC",
+          font_size_pt: 56,
+          color: "#1a1a1a",
+          bold: true,
+          align: "left",
+          valign: "top",
+          line_spacing: 1.1
+        },
+        {
+          id: "tb-subtitle",
+          text: "副标题或者简短说明",
+          x: 0.08, y: 0.54, w: 0.62, h: 0.08,
+          font_family: "PingFang SC",
+          font_size_pt: 22,
+          color: "#5b5247",
+          bold: false,
+          align: "left",
+          valign: "top",
+          line_spacing: 1.3
+        }
+      ]
+    }
+  ]
+};
+
+const SAFE_FONTS = [
+  "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB",
+  "Source Han Sans SC", "SimHei", "SimSun",
+  "Arial", "Helvetica", "Helvetica Neue",
+  "Verdana", "Tahoma", "Calibri",
+  "Times New Roman", "Georgia",
+  "Courier New", "Consolas", "Menlo", "Monaco"
+];
+
+const RATIOS = {
+  "16:9": [13.333, 7.5],
+  "4:3":  [10.0, 7.5],
+  "3:2":  [10.5, 7.0],
+  "1:1":  [7.5, 7.5]
+};
+
+// ─────────────────────────────────────────────────────────
+// 状态
+// ─────────────────────────────────────────────────────────
+
+const ANNOT_STORAGE_KEY = 'ppt-image-first-phasec-editor-annot-v1';
+
+const state = {
+  deck: window.__phaseCDeck || JSON.parse(JSON.stringify(DEFAULT_DECK)),
+  currentSlide: 0,
+  selectedTextBox: null,
+  editing: false,
+  reviewMode: false,
+  reviewTool: 'rect',
+  reviewStrokeWidth: 4,
+  reviewStrokeColor: '#b9501e',
+  annot: loadAnnotState()   // { [slideId]: { requested_action, page_comment, rects, pen_strokes, notes } }
+};
+
+function emptyAnnotPage() {
+  return { requested_action: 'retouch-local', page_comment: '', rects: [], pen_strokes: [], notes: [] };
+}
+
+function loadAnnotState() {
+  try { return JSON.parse(localStorage.getItem(ANNOT_STORAGE_KEY) || ''); } catch { return {}; }
+}
+
+function saveAnnotState() {
+  try { localStorage.setItem(ANNOT_STORAGE_KEY, JSON.stringify(state.annot)); } catch {}
+}
+
+function getAnnotPage(slideId) {
+  if (!state.annot[slideId]) state.annot[slideId] = emptyAnnotPage();
+  return state.annot[slideId];
+}
+
+function annotHasContent(slideId) {
+  const a = state.annot[slideId];
+  if (!a) return false;
+  return a.rects.length > 0 || a.pen_strokes.length > 0 || a.notes.length > 0 || (a.page_comment || '').trim();
+}
+
+function totalAnnotPages() {
+  return Object.keys(state.annot).filter(id => annotHasContent(id)).length;
+}
+
+// ─────────────────────────────────────────────────────────
+// 渲染
+// ─────────────────────────────────────────────────────────
+
+const $canvas = document.getElementById("canvas");
+const $pageList = document.getElementById("pageList");
+const $propsEmpty = document.getElementById("propsEmpty");
+const $propsForm = document.getElementById("propsForm");
+
+function renderPageList() {
+  $pageList.innerHTML = "";
+  state.deck.slides.forEach((s, i) => {
+    const div = document.createElement("div");
+    div.className = "page-item" + (i === state.currentSlide ? " active" : "");
+    const badge = annotHasContent(s.id) ? `<span class="badge">🖊</span>` : '';
+    div.innerHTML = `<span class="num">${String(i + 1).padStart(2, "0")}</span><span>${s.id || `slide ${i+1}`}</span>${badge}`;
+    div.addEventListener("click", () => {
+      state.currentSlide = i;
+      state.selectedTextBox = null;
+      state.editing = false;
+      renderAll();
+    });
+    $pageList.appendChild(div);
+  });
+}
+
+function renderCanvas() {
+  const slide = state.deck.slides[state.currentSlide];
+  if (!slide) return;
+
+  const ratio = state.deck.deck?.ratio || "16:9";
+  const [w_in, h_in] = RATIOS[ratio] || RATIOS["16:9"];
+  $canvas.style.aspectRatio = `${w_in} / ${h_in}`;
+  $canvas.classList.toggle('review-mode', state.reviewMode);
+
+  // 删除上一次的背景图和文字框，但保留 review-canvas / review-notes
+  Array.from($canvas.querySelectorAll('.bg-img, .text-box')).forEach(n => n.remove());
+
+  if (slide.background) {
+    const img = document.createElement("img");
+    img.src = slide.background;
+    img.alt = "background";
+    img.className = "bg-img";
+    img.onerror = () => {
+      $canvas.style.background = `repeating-linear-gradient(45deg, #4a3826, #4a3826 18px, #3a2c1d 18px, #3a2c1d 36px)`;
+    };
+    // 插到最前，确保 review-canvas/notes 仍在它之后
+    $canvas.insertBefore(img, $canvas.firstChild);
+  }
+
+  (slide.text_boxes || []).forEach((tb, idx) => {
+    $canvas.appendChild(renderTextBox(tb, idx));
+  });
+
+  renderReviewLayer();
+}
+
+function renderTextBox(tb, idx) {
+  const el = document.createElement("div");
+  el.className = "text-box" + (state.selectedTextBox === idx ? " selected" : "");
+  el.dataset.idx = idx;
+  el.style.left = (tb.x * 100) + "%";
+  el.style.top = (tb.y * 100) + "%";
+  el.style.width = (tb.w * 100) + "%";
+  el.style.height = (tb.h * 100) + "%";
+  el.style.fontFamily = `"${tb.font_family || state.deck.deck?.default_font || 'PingFang SC'}"`;
+  // 字号：HTML 用 px，按画布宽度近似映射（slide 高 = font_size_pt × 1pt → 用 vw 太复杂，直接用比例）
+  // 1pt 在 7.5in 高的 slide 上 = 1/(7.5*72) 的高度比例；这里用 canvas 高度的相对单位
+  const slideHeightIn = (RATIOS[state.deck.deck?.ratio || "16:9"][1]);
+  const canvasH = $canvas.getBoundingClientRect().height || 600;
+  const pxPerPt = canvasH / (slideHeightIn * 72);
+  el.style.fontSize = (tb.font_size_pt * pxPerPt) + "px";
+  el.style.color = tb.color || state.deck.deck?.default_color || "#1a1a1a";
+  el.style.fontWeight = tb.bold ? "700" : "400";
+  el.style.fontStyle = tb.italic ? "italic" : "normal";
+  el.style.textAlign = tb.align || "left";
+  el.style.lineHeight = tb.line_spacing || 1.2;
+
+  // valign 通过 flex 实现
+  const valign = tb.valign || "top";
+  el.style.display = "flex";
+  el.style.flexDirection = "column";
+  el.style.justifyContent =
+    valign === "middle" ? "center" :
+    valign === "bottom" ? "flex-end" : "flex-start";
+
+  el.textContent = tb.text || "";
+
+  // 选中状态加 resize handle
+  if (state.selectedTextBox === idx && !state.editing) {
+    ["br"].forEach(corner => {
+      const h = document.createElement("div");
+      h.className = "resize-handle " + corner;
+      h.dataset.corner = corner;
+      el.appendChild(h);
+    });
+  }
+
+  // 事件
+  el.addEventListener("mousedown", (e) => onTextBoxMouseDown(e, idx));
+  el.addEventListener("dblclick", (e) => {
+    e.stopPropagation();
+    enterEditMode(idx);
+  });
+
+  return el;
+}
+
+function renderProps() {
+  if (state.selectedTextBox === null) {
+    $propsEmpty.style.display = "block";
+    $propsForm.style.display = "none";
+    return;
+  }
+  $propsEmpty.style.display = "none";
+  $propsForm.style.display = "block";
+
+  const tb = state.deck.slides[state.currentSlide].text_boxes[state.selectedTextBox];
+  if (!tb) return;
+
+  $propsForm.innerHTML = `
+    <div class="props-section">
+      <div class="field">
+        <label>文字内容</label>
+        <textarea id="f_text">${escapeHtml(tb.text || "")}</textarea>
+      </div>
+    </div>
+    <div class="props-section">
+      <div class="row2">
+        <div class="field">
+          <label>x (0-1)</label>
+          <input type="number" step="0.01" id="f_x" value="${tb.x.toFixed(3)}">
+        </div>
+        <div class="field">
+          <label>y (0-1)</label>
+          <input type="number" step="0.01" id="f_y" value="${tb.y.toFixed(3)}">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>w (0-1)</label>
+          <input type="number" step="0.01" id="f_w" value="${tb.w.toFixed(3)}">
+        </div>
+        <div class="field">
+          <label>h (0-1)</label>
+          <input type="number" step="0.01" id="f_h" value="${tb.h.toFixed(3)}">
+        </div>
+      </div>
+    </div>
+    <div class="props-section">
+      <div class="field">
+        <label>字体</label>
+        <select id="f_font">
+          ${SAFE_FONTS.map(f => `<option value="${f}" ${f === tb.font_family ? "selected" : ""}>${f}</option>`).join("")}
+        </select>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>字号 (pt)</label>
+          <input type="number" min="6" max="200" id="f_size" value="${tb.font_size_pt}">
+        </div>
+        <div class="field">
+          <label>颜色</label>
+          <input type="color" id="f_color" value="${tb.color || '#1a1a1a'}">
+        </div>
+      </div>
+      <div class="field">
+        <label>样式</label>
+        <div class="toggle-group">
+          <button id="f_bold" class="${tb.bold ? 'active' : ''}">B</button>
+          <button id="f_italic" class="${tb.italic ? 'active' : ''}">I</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>水平对齐</label>
+        <div class="toggle-group">
+          ${["left","center","right"].map(a =>
+            `<button data-align="${a}" class="${tb.align === a ? 'active' : ''}">${a}</button>`
+          ).join("")}
+        </div>
+      </div>
+      <div class="field">
+        <label>垂直对齐</label>
+        <div class="toggle-group">
+          ${["top","middle","bottom"].map(a =>
+            `<button data-valign="${a}" class="${tb.valign === a ? 'active' : ''}">${a}</button>`
+          ).join("")}
+        </div>
+      </div>
+      <div class="field">
+        <label>行距 (倍数)</label>
+        <input type="number" step="0.1" min="0.8" max="3" id="f_lh" value="${tb.line_spacing || 1.2}">
+      </div>
+    </div>
+    <div class="actions-inline">
+      <button class="btn danger" id="f_delete">删除</button>
+      <button class="btn" id="f_dup">复制</button>
+    </div>
+  `;
+  bindPropsFormEvents(tb);
+}
+
+function bindPropsFormEvents(tb) {
+  const upd = () => {
+    const t = state.deck.slides[state.currentSlide].text_boxes[state.selectedTextBox];
+    if (!t) return;
+    t.text = document.getElementById("f_text").value;
+    t.x = clamp01(parseFloat(document.getElementById("f_x").value) || 0);
+    t.y = clamp01(parseFloat(document.getElementById("f_y").value) || 0);
+    t.w = clamp01(parseFloat(document.getElementById("f_w").value) || 0.1);
+    t.h = clamp01(parseFloat(document.getElementById("f_h").value) || 0.05);
+    t.font_family = document.getElementById("f_font").value;
+    t.font_size_pt = parseFloat(document.getElementById("f_size").value) || 18;
+    t.color = document.getElementById("f_color").value;
+    t.line_spacing = parseFloat(document.getElementById("f_lh").value) || 1.2;
+    renderCanvas();
+  };
+  ["f_text","f_x","f_y","f_w","f_h","f_size","f_color","f_lh","f_font"]
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("input", upd);
+    });
+
+  document.getElementById("f_bold").addEventListener("click", () => {
+    tb.bold = !tb.bold; renderProps(); renderCanvas();
+  });
+  document.getElementById("f_italic").addEventListener("click", () => {
+    tb.italic = !tb.italic; renderProps(); renderCanvas();
+  });
+  document.querySelectorAll("[data-align]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      tb.align = btn.dataset.align; renderProps(); renderCanvas();
+    });
+  });
+  document.querySelectorAll("[data-valign]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      tb.valign = btn.dataset.valign; renderProps(); renderCanvas();
+    });
+  });
+
+  document.getElementById("f_delete").addEventListener("click", deleteSelected);
+  document.getElementById("f_dup").addEventListener("click", duplicateSelected);
+}
+
+function renderAll() {
+  renderPageList();
+  renderCanvas();
+  renderProps();
+}
+
+// ─────────────────────────────────────────────────────────
+// 背景反馈标注层
+// ─────────────────────────────────────────────────────────
+
+const $reviewCanvas = document.getElementById('reviewCanvas');
+const $reviewNotes  = document.getElementById('reviewNotes');
+const $modeToolbar  = document.getElementById('modeToolbar');
+const $reviewPropsWrap = document.getElementById('reviewPropsWrap');
+const $textPropsWrap   = document.getElementById('textPropsWrap');
+const rCtx = $reviewCanvas.getContext('2d');
+let rDrawing = null;
+
+function getCurrentSlideId() {
+  return state.deck.slides[state.currentSlide]?.id || String(state.currentSlide);
+}
+
+function rMarker(i) {
+  return ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'][i] || String(i + 1);
+}
+
+function rcPoint(e) {
+  const r = $canvas.getBoundingClientRect();
+  return {
+    x: Math.min(Math.max((e.clientX - r.left) / r.width,  0), 1),
+    y: Math.min(Math.max((e.clientY - r.top)  / r.height, 0), 1)
+  };
+}
+
+function rResizeCanvas() {
+  const r = $canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  $reviewCanvas.width  = Math.round(r.width  * dpr);
+  $reviewCanvas.height = Math.round(r.height * dpr);
+  $reviewCanvas.style.width  = `${r.width}px`;
+  $reviewCanvas.style.height = `${r.height}px`;
+  rCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  rPaintAll();
+}
+
+function rPaintAll() {
+  const r = $canvas.getBoundingClientRect();
+  rCtx.clearRect(0, 0, r.width, r.height);
+  const ap = getAnnotPage(getCurrentSlideId());
+  ap.pen_strokes.forEach(s => rPaintStroke(s, r));
+  ap.rects.forEach(item => rPaintRect(item, r));
+  if (rDrawing?.type === 'rect' && rDrawing.preview) rPaintRect(rDrawing.preview, r);
+  if (rDrawing?.type === 'pen'  && rDrawing.preview) rPaintStroke(rDrawing.preview, r);
+}
+
+function rPaintStroke(s, r) {
+  if (!s.points || s.points.length < 2) return;
+  rCtx.beginPath();
+  rCtx.lineCap = 'round'; rCtx.lineJoin = 'round';
+  rCtx.strokeStyle = s.color; rCtx.lineWidth = s.width;
+  s.points.forEach((p, i) => {
+    if (i === 0) rCtx.moveTo(p.x * r.width, p.y * r.height);
+    else rCtx.lineTo(p.x * r.width, p.y * r.height);
+  });
+  rCtx.stroke();
+}
+
+function rPaintRect(item, r) {
+  rCtx.beginPath();
+  rCtx.strokeStyle = item.color; rCtx.lineWidth = item.width;
+  rCtx.setLineDash([10, 7]);
+  rCtx.strokeRect(item.x * r.width, item.y * r.height, item.w * r.width, item.h * r.height);
+  rCtx.setLineDash([]);
+}
+
+function renderReviewNotePins() {
+  const ap = getAnnotPage(getCurrentSlideId());
+  $reviewNotes.innerHTML = ap.notes.map((note, i) =>
+    `<div class="review-note-pin" style="left:${note.x*100}%;top:${note.y*100}%">${rMarker(i)}</div>`
+  ).join('');
+}
+
+function renderReviewLayer() {
+  rResizeCanvas();
+  renderReviewNotePins();
+  syncReviewPanel();
+}
+
+function syncReviewPanel() {
+  const slide = state.deck.slides[state.currentSlide];
+  if (!slide) return;
+  const ap = getAnnotPage(slide.id);
+  const r_action  = document.getElementById('r_action');
+  const r_comment = document.getElementById('r_comment');
+  const r_noteList = document.getElementById('r_noteList');
+  if (r_action)  r_action.value  = ap.requested_action;
+  if (r_comment) r_comment.value = ap.page_comment;
+  if (r_noteList) {
+    r_noteList.innerHTML = ap.notes.length ? ap.notes.map((n, i) =>
+      `<div style="padding:8px;border:1px solid var(--line);border-radius:8px;font-size:12px;">
+        <b>${rMarker(i)}</b> — ${escapeHtml(n.text)}
+        <button data-noteid="${n.id}" style="float:right;border:0;background:transparent;cursor:pointer;color:var(--muted);">✕</button>
+      </div>`
+    ).join('') : '<span style="color:var(--muted);font-size:12px;">暂无注释点</span>';
+    r_noteList.querySelectorAll('[data-noteid]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const ap2 = getAnnotPage(getCurrentSlideId());
+        ap2.notes = ap2.notes.filter(n => n.id !== btn.dataset.noteid);
+        saveAnnotState(); renderReviewLayer(); renderPageList();
+      });
+    });
+  }
+}
+
+// 绑定反馈面板输入
+document.addEventListener('change', e => {
+  if (e.target.id === 'r_action') {
+    getAnnotPage(getCurrentSlideId()).requested_action = e.target.value;
+    saveAnnotState(); renderPageList();
+  }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'r_comment') {
+    getAnnotPage(getCurrentSlideId()).page_comment = e.target.value;
+    saveAnnotState(); renderPageList();
+  }
+});
+
+// 标注工具栏事件
+document.querySelectorAll('[data-rtool]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.reviewTool = btn.dataset.rtool;
+    document.querySelectorAll('[data-rtool]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+document.getElementById('rStrokeWidth').addEventListener('input', e => { state.reviewStrokeWidth = Number(e.target.value); });
+document.getElementById('rStrokeColor').addEventListener('input', e => { state.reviewStrokeColor = e.target.value; });
+document.getElementById('rUndo').addEventListener('click', () => {
+  const ap = getAnnotPage(getCurrentSlideId());
+  if (ap.pen_strokes.length) ap.pen_strokes.pop();
+  else if (ap.rects.length) ap.rects.pop();
+  else if (ap.notes.length) ap.notes.pop();
+  saveAnnotState(); renderReviewLayer(); renderPageList();
+});
+document.getElementById('rClearPage').addEventListener('click', () => {
+  state.annot[getCurrentSlideId()] = emptyAnnotPage();
+  saveAnnotState(); renderReviewLayer(); renderPageList();
+});
+
+// 画布指针事件（标注模式）
+$reviewCanvas.addEventListener('pointerdown', e => {
+  if (!state.reviewMode) return;
+  const pt = rcPoint(e);
+  if (state.reviewTool === 'note') {
+    const text = window.prompt('写下这处背景要改的地方：');
+    if (!text?.trim()) return;
+    getAnnotPage(getCurrentSlideId()).notes.push({ id: crypto.randomUUID(), x: pt.x, y: pt.y, text: text.trim() });
+    saveAnnotState(); renderReviewLayer(); renderPageList();
+    return;
+  }
+  $reviewCanvas.setPointerCapture(e.pointerId);
+  if (state.reviewTool === 'rect') {
+    rDrawing = { type: 'rect', start: pt, preview: { x: pt.x, y: pt.y, w: 0, h: 0, color: state.reviewStrokeColor, width: state.reviewStrokeWidth } };
+  } else {
+    rDrawing = { type: 'pen', preview: { color: state.reviewStrokeColor, width: state.reviewStrokeWidth, points: [pt] } };
+  }
+});
+
+$reviewCanvas.addEventListener('pointermove', e => {
+  if (!rDrawing) return;
+  const pt = rcPoint(e);
+  if (rDrawing.type === 'rect') {
+    rDrawing.preview = {
+      x: Math.min(rDrawing.start.x, pt.x), y: Math.min(rDrawing.start.y, pt.y),
+      w: Math.abs(pt.x - rDrawing.start.x), h: Math.abs(pt.y - rDrawing.start.y),
+      color: state.reviewStrokeColor, width: state.reviewStrokeWidth
+    };
+  } else {
+    rDrawing.preview.points.push(pt);
+  }
+  rPaintAll();
+});
+
+function rEndDrawing() {
+  if (!rDrawing) return;
+  const ap = getAnnotPage(getCurrentSlideId());
+  if (rDrawing.type === 'rect' && rDrawing.preview.w > 0.005 && rDrawing.preview.h > 0.005)
+    ap.rects.push(rDrawing.preview);
+  if (rDrawing.type === 'pen' && rDrawing.preview.points.length > 1)
+    ap.pen_strokes.push(rDrawing.preview);
+  rDrawing = null;
+  saveAnnotState(); rPaintAll(); renderPageList();
+}
+
+$reviewCanvas.addEventListener('pointerup', rEndDrawing);
+$reviewCanvas.addEventListener('pointercancel', rEndDrawing);
+
+// 模式切换
+document.getElementById('btnAnnotToggle').addEventListener('click', () => {
+  state.reviewMode = !state.reviewMode;
+  const btn = document.getElementById('btnAnnotToggle');
+  btn.textContent = state.reviewMode ? '✏️ 文字编辑模式' : '🖊 背景反馈';
+  btn.classList.toggle('primary', state.reviewMode);
+  $modeToolbar.dataset.mode = state.reviewMode ? 'review' : 'text';
+  $reviewPropsWrap.style.display = state.reviewMode ? '' : 'none';
+  $textPropsWrap.style.display   = state.reviewMode ? 'none' : '';
+  if (state.reviewMode) { state.selectedTextBox = null; }
+  renderAll();
+});
+
+window.addEventListener('resize', () => { rResizeCanvas(); });
+
+let dragState = null;
+
+function onTextBoxMouseDown(e, idx) {
+  if (state.editing) return;
+  // 如果点的是 resize handle，开始 resize
+  const handle = e.target.closest(".resize-handle");
+  const rect = $canvas.getBoundingClientRect();
+  const tb = state.deck.slides[state.currentSlide].text_boxes[idx];
+
+  if (handle) {
+    e.stopPropagation();
+    dragState = {
+      mode: "resize",
+      corner: handle.dataset.corner,
+      idx,
+      startMouseX: e.clientX,
+      startMouseY: e.clientY,
+      startX: tb.x, startY: tb.y, startW: tb.w, startH: tb.h,
+      canvasW: rect.width, canvasH: rect.height
+    };
+  } else {
+    state.selectedTextBox = idx;
+    renderProps();
+    renderCanvas();  // 重新渲染让 handle 出现
+    dragState = {
+      mode: "move",
+      idx,
+      startMouseX: e.clientX,
+      startMouseY: e.clientY,
+      startX: tb.x, startY: tb.y,
+      canvasW: rect.width, canvasH: rect.height
+    };
+  }
+  e.preventDefault();
+}
+
+document.addEventListener("mousemove", (e) => {
+  if (!dragState) return;
+  const tb = state.deck.slides[state.currentSlide].text_boxes[dragState.idx];
+  if (!tb) return;
+
+  const dx = (e.clientX - dragState.startMouseX) / dragState.canvasW;
+  const dy = (e.clientY - dragState.startMouseY) / dragState.canvasH;
+
+  if (dragState.mode === "move") {
+    tb.x = clamp01(dragState.startX + dx);
+    tb.y = clamp01(dragState.startY + dy);
+  } else if (dragState.mode === "resize" && dragState.corner === "br") {
+    tb.w = clamp(0.02, dragState.startW + dx, 1 - tb.x);
+    tb.h = clamp(0.02, dragState.startH + dy, 1 - tb.y);
+  }
+  renderCanvas();
+});
+
+document.addEventListener("mouseup", () => {
+  if (dragState) {
+    dragState = null;
+    renderProps();
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (state.editing) {
+    if (e.key === "Escape") exitEditMode();
+    return;
+  }
+  if (state.selectedTextBox === null) return;
+  if (e.key === "Delete") {
+    e.preventDefault();
+    deleteSelected();
+  } else if (e.key === "Backspace") {
+    // Backspace 不再误删整框：进入编辑态、把光标放末尾、删掉最后一个字符
+    e.preventDefault();
+    const idx = state.selectedTextBox;
+    enterEditMode(idx);
+    requestAnimationFrame(() => {
+      const el = $canvas.querySelector(`.text-box[data-idx="${idx}"]`);
+      if (!el) return;
+      const text = el.innerText;
+      if (text.length > 0) {
+        el.innerText = text.slice(0, -1);
+        const tb = state.deck.slides[state.currentSlide].text_boxes[idx];
+        if (tb) tb.text = el.innerText;
+      }
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    });
+  }
+});
+
+$canvas.addEventListener("click", (e) => {
+  // 点画布空白 → 取消选中
+  if (e.target === $canvas || e.target.classList.contains("bg-img")) {
+    state.selectedTextBox = null;
+    state.editing = false;
+    renderAll();
+  }
+});
+
+function enterEditMode(idx) {
+  state.selectedTextBox = idx;
+  state.editing = true;
+  renderCanvas();
+  const el = $canvas.querySelector(`.text-box[data-idx="${idx}"]`);
+  if (!el) return;
+  el.contentEditable = "true";
+  el.focus();
+  // 把光标放到末尾
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  el.addEventListener("input", () => {
+    const tb = state.deck.slides[state.currentSlide].text_boxes[idx];
+    if (tb) tb.text = el.innerText;
+  });
+  el.addEventListener("blur", exitEditMode, { once: true });
+}
+
+function exitEditMode() {
+  state.editing = false;
+  renderAll();
+}
+
+function deleteSelected() {
+  const slide = state.deck.slides[state.currentSlide];
+  if (!slide || state.selectedTextBox === null) return;
+  slide.text_boxes.splice(state.selectedTextBox, 1);
+  state.selectedTextBox = null;
+  renderAll();
+}
+
+function duplicateSelected() {
+  const slide = state.deck.slides[state.currentSlide];
+  if (!slide || state.selectedTextBox === null) return;
+  const src = slide.text_boxes[state.selectedTextBox];
+  const clone = JSON.parse(JSON.stringify(src));
+  clone.id = (clone.id || "tb") + "-copy";
+  clone.x = clamp01(clone.x + 0.02);
+  clone.y = clamp01(clone.y + 0.02);
+  slide.text_boxes.push(clone);
+  state.selectedTextBox = slide.text_boxes.length - 1;
+  renderAll();
+}
+
+document.getElementById("btnAdd").addEventListener("click", () => {
+  const slide = state.deck.slides[state.currentSlide];
+  if (!slide) return;
+  slide.text_boxes.push({
+    id: "tb-" + Date.now().toString(36),
+    text: "新文字框",
+    x: 0.3, y: 0.4, w: 0.4, h: 0.12,
+    font_family: state.deck.deck?.default_font || "PingFang SC",
+    font_size_pt: state.deck.deck?.default_font_size_pt || 18,
+    color: state.deck.deck?.default_color || "#1a1a1a",
+    bold: false, italic: false,
+    align: "left", valign: "top",
+    line_spacing: 1.2
+  });
+  state.selectedTextBox = slide.text_boxes.length - 1;
+  renderAll();
+});
+
+// ─────────────────────────────────────────────────────────
+// 导入 / 导出
+// ─────────────────────────────────────────────────────────
+
+const $ioModal = document.getElementById("ioModal");
+const $ioTitle = document.getElementById("ioTitle");
+const $ioHint = document.getElementById("ioHint");
+const $ioBigCopyHint = document.getElementById("ioBigCopyHint");
+const $ioText = document.getElementById("ioText");
+const $ioApply = document.getElementById("ioApply");
+const $ioDownload = document.getElementById("ioDownload");
+
+function roundCoord(v) { return Number(Math.min(Math.max(v, 0), 1).toFixed(4)); }
+
+function buildBackgroundReviewPayload(deck) {
+  const pages = [];
+  deck.slides.forEach(slide => {
+    const ap = state.annot[slide.id];
+    if (!ap) return;
+    const hasMarkup = ap.rects.length || ap.pen_strokes.length || ap.notes.length;
+    const comment = (ap.page_comment || '').trim();
+    if (!hasMarkup && !comment && ap.requested_action === 'approved') return;
+    const out = {
+      page_id: slide.id,
+      title: slide.id,
+      background: slide.background || '',
+      requested_action: ap.requested_action,
+      page_comment: comment,
+      note_comments: ap.notes.map((n, i) => ({ marker: rMarker(i), comment: n.text }))
+    };
+    if (hasMarkup) {
+      out.markup = {
+        coordinate_space: 'normalized_0_1',
+        notes: ap.notes.map((n, i) => ({ marker: rMarker(i), x: roundCoord(n.x), y: roundCoord(n.y), comment: n.text })),
+        rects: ap.rects.map(r => ({ x: roundCoord(r.x), y: roundCoord(r.y), w: roundCoord(r.w), h: roundCoord(r.h), color: r.color, width: Number(r.width.toFixed(2)) })),
+        pen_strokes: ap.pen_strokes.map(s => ({ color: s.color, width: Number(s.width.toFixed(2)), points: s.points.map(p => ({ x: roundCoord(p.x), y: roundCoord(p.y) })) }))
+      };
+    }
+    pages.push(out);
+  });
+  if (!pages.length) return null;
+  return {
+    schema_version: 'phasec-background-review-v1',
+    submitted_at: new Date().toISOString(),
+    title: 'Phase C 背景修改反馈',
+    agent_instruction: 'Use each page background plus review markup and comments as the basis for Phase C background retouch or regeneration. Do not alter Phase A assets.',
+    page_count: pages.length,
+    pages
+  };
+}
+
+function buildAgentInstructionPayload(deck) {
+  const json = JSON.stringify(deck, null, 2);
+  const nSlides = deck.slides ? deck.slides.length : 0;
+  const review = buildBackgroundReviewPayload(deck);
+  const lines = [
+    "===PPT-CRAFT-EDITABLE / DECK FROM EDITOR===",
+    "",
+    "用户在 Phase C 编辑器里完成了一次编辑会话。下面包含：",
+    "  - ===DECK JSON===  最新的 deck.json（文字内容/位置/样式）",
+    review ? `  - ===PHASEC BACKGROUND REVIEW===  ${review.page_count} 页的背景修改反馈` : "  （本次没有背景修改反馈）",
+    "",
+    "请按下面的情况执行，**不要解读或讨论 JSON 内容**：",
+    "",
+  ];
+  if (review) {
+    lines.push(
+      "情况 B —— 本次包含背景反馈，必须先修背景：",
+      "  1. 把 ===DECK JSON BEGIN/END=== 之间内容原样写入 phaseC/deck.json（覆盖旧版）",
+      "  2. 把 ===PHASEC BACKGROUND REVIEW BEGIN/END=== 之间内容当作背景修改依据：",
+      "       - requested_action=retouch-local         → 用 IOPaint 或局部编辑修当前背景",
+      "       - requested_action=regenerate-background → 以反馈为依据重生成该页背景",
+      "       - requested_action=adjust-text-zones     → 调整背景留白区与 deck 里对应文字框",
+      "       - requested_action=approved              → 该页背景已认可，不必修",
+      "     按 markup（rects/pen_strokes/notes）和 page_comment / note_comments 落地",
+      "     修改 phaseC/backgrounds/*.png（不要去改 Phase A 的图）",
+      "  3. 修完后用 scripts/inject_editor_deck.py 重新生成 editor.html，",
+      "     让用户在新的背景上再确认一次。**先不要**直接渲染 PPTX。",
+      "",
+      "  注意：deck.json 里的文字改动是用户已经定稿的，不要重排版、不要建议改字号字色。",
+    );
+  } else {
+    lines.push(
+      "情况 A —— 没有背景反馈，直接渲染：",
+      "  1. 把 ===DECK JSON BEGIN/END=== 之间内容原样写入 phaseC/deck.json（覆盖旧版）",
+      "  2. 运行：",
+      "       python3 scripts/json_to_pptx.py phaseC/deck.json \\",
+      "         -o phaseC/edited.pptx \\",
+      "         --preview-dir phaseC/preview",
+      "  3. 把 phaseC/edited.pptx 的路径告诉用户，结束本任务。",
+      "",
+      "  注意：deck.json 是最终版本，以这一份为准，不要用旧版，也不要建议改字号字色。",
+    );
+  }
+  lines.push(
+    "  共有 " + nSlides + " 页。",
+    "",
+    "===DECK JSON BEGIN===",
+    json,
+    "===DECK JSON END===",
+  );
+  if (review) {
+    lines.push(
+      "",
+      "===PHASEC BACKGROUND REVIEW BEGIN===",
+      JSON.stringify(review, null, 2),
+      "===PHASEC BACKGROUND REVIEW END===",
+    );
+  }
+  lines.push("");
+  return lines.join("\n");
+}
+
+document.getElementById("btnExport").addEventListener("click", () => {
+  $ioTitle.textContent = "导出 / 继续生成";
+  $ioHint.style.display = "none";
+  $ioBigCopyHint.style.display = "block";
+  // 关键：导出时不是裸 JSON，而是带明确指令的"完整指令包"
+  $ioText.value = buildAgentInstructionPayload(state.deck);
+  $ioText.readOnly = true;
+  $ioApply.style.display = "none";
+  $ioDownload.style.display = "";
+  $ioModal.classList.add("open");
+});
+
+document.getElementById("btnImport").addEventListener("click", () => {
+  $ioTitle.textContent = "导入 deck.json";
+  $ioHint.style.display = "block";
+  $ioBigCopyHint.style.display = "none";
+  $ioHint.innerHTML = "你可以直接贴系统给的 deck.json，也可以贴编辑后的整段内容（带标记）。点击「应用导入」后会覆盖当前内容。<br><b>注意</b>：背景图路径只能用绝对路径或可被浏览器解析的 URL（本地文件不能跨目录访问）。";
+  $ioText.value = JSON.stringify(state.deck, null, 2);
+  $ioText.readOnly = false;
+  $ioApply.style.display = "";
+  $ioDownload.style.display = "none";
+  $ioModal.classList.add("open");
+});
+
+document.getElementById("ioClose").addEventListener("click", () => {
+  $ioModal.classList.remove("open");
+});
+
+document.getElementById("ioCopy").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText($ioText.value);
+    document.getElementById("ioCopy").textContent = "已复制 ✓ 现在粘贴到 AI 对话框";
+    setTimeout(() => { document.getElementById("ioCopy").textContent = "📋 复制整段（推荐）"; }, 2200);
+  } catch (e) {
+    alert("复制失败：" + e.message + "\n请手动选中文本框内容复制。");
+  }
+});
+
+document.getElementById("ioDownload").addEventListener("click", () => {
+  // 下载的是纯 JSON（不是指令包），文件名固定 deck.json
+  // 用途：用户可以把这个文件直接拖给 AI（如果 AI 支持文件上传），
+  // 或者手动放到 phaseC/ 目录后让 AI 跑 json_to_pptx.py
+  try {
+    const json = JSON.stringify(state.deck, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "deck.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    document.getElementById("ioDownload").textContent = "已下载 ✓";
+    setTimeout(() => { document.getElementById("ioDownload").textContent = "下载 deck.json 文件"; }, 2000);
+  } catch (e) {
+    alert("下载失败：" + e.message);
+  }
+});
+
+$ioApply.addEventListener("click", () => {
+  try {
+    let text = $ioText.value;
+    // 兼容：用户可能粘贴了带 ===DECK JSON BEGIN/END=== sentinel 的指令包
+    const beginMatch = text.indexOf("===DECK JSON BEGIN===");
+    const endMatch = text.indexOf("===DECK JSON END===");
+    if (beginMatch !== -1 && endMatch !== -1 && endMatch > beginMatch) {
+      text = text.slice(beginMatch + "===DECK JSON BEGIN===".length, endMatch).trim();
+    }
+    const parsed = JSON.parse(text);
+    if (!parsed.slides || !Array.isArray(parsed.slides) || parsed.slides.length === 0) {
+      throw new Error("JSON 里没有 slides 数组或为空");
+    }
+    state.deck = parsed;
+    state.currentSlide = 0;
+    state.selectedTextBox = null;
+    $ioModal.classList.remove("open");
+    renderAll();
+  } catch (e) {
+    alert("JSON 解析失败：" + e.message);
+  }
+});
+
+document.getElementById("btnHelp").addEventListener("click", () => {
+  document.getElementById("helpModal").classList.add("open");
+});
+document.getElementById("helpClose").addEventListener("click", () => {
+  document.getElementById("helpModal").classList.remove("open");
+});
+
+// ─────────────────────────────────────────────────────────
+// 工具
+// ─────────────────────────────────────────────────────────
+
+function clamp(min, v, max) { return Math.max(min, Math.min(v, max)); }
+function clamp01(v) { return clamp(0, v, 1); }
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])
+  );
+}
+
+// 启动
+renderAll();
+window.addEventListener("resize", renderCanvas);
+</script>
+</body>
+</html>

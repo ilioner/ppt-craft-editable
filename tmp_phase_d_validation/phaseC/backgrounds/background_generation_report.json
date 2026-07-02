@@ -1,0 +1,20 @@
+{
+  "pages": [
+    {
+      "page_index": 1,
+      "source_image": "/Users/tywin/Documents/LLM/ppt测试/ppt-craft-editable/tmp_phase_d_validation/phaseD/work/page_images/01.png",
+      "background_strategy": "clean",
+      "text_box_count": 5,
+      "full_output": "/Users/tywin/Documents/LLM/ppt测试/ppt-craft-editable/tmp_phase_d_validation/phaseC/backgrounds/01-full.png",
+      "background_output": "/Users/tywin/Documents/LLM/ppt测试/ppt-craft-editable/tmp_phase_d_validation/phaseC/backgrounds/01.png"
+    },
+    {
+      "page_index": 2,
+      "source_image": "/Users/tywin/Documents/LLM/ppt测试/ppt-craft-editable/tmp_phase_d_validation/phaseD/work/page_images/02.png",
+      "background_strategy": "rebuild",
+      "text_box_count": 2,
+      "full_output": "/Users/tywin/Documents/LLM/ppt测试/ppt-craft-editable/tmp_phase_d_validation/phaseC/backgrounds/02-full.png",
+      "background_output": "/Users/tywin/Documents/LLM/ppt测试/ppt-craft-editable/tmp_phase_d_validation/phaseC/backgrounds/02.png"
+    }
+  ]
+}
