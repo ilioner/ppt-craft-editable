@@ -233,30 +233,32 @@
   }
   .text-box {
     position: absolute;
-    border: 1.5px dashed transparent;
+    border: none;
+    outline: 1.5px dashed transparent;
+    outline-offset: -1px;
     border-radius: 4px;
-    padding: 4px;
+    padding: 0;
     cursor: move;
     color: #f4efe4;
     overflow: hidden;
-    transition: border-color 0.2s ease, background 0.2s ease;
+    transition: outline-color 0.2s ease, background 0.2s ease;
     word-wrap: break-word;
     white-space: pre-wrap;
   }
   .text-box:hover {
-    border-color: rgba(110, 198, 255, 0.6);
+    outline-color: rgba(110, 198, 255, 0.6);
     background: rgba(110, 198, 255, 0.08);
   }
   .text-box.selected {
-    border-color: rgba(244, 184, 96, 0.85);
+    outline-color: rgba(244, 184, 96, 0.85);
     background: rgba(244, 184, 96, 0.12);
     box-shadow: 0 0 0 3px rgba(244, 184, 96, 0.18);
   }
   .text-box[contenteditable="true"] {
     cursor: text;
-    outline: none;
+    outline: 1.5px dashed rgba(110, 198, 255, 0.8);
+    outline-offset: -1px;
     background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(110, 198, 255, 0.8);
   }
   .resize-handle {
     position: absolute;
