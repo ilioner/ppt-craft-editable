@@ -106,6 +106,7 @@ import base64
 import html as html_lib
 import json
 import mimetypes
+import os
 import re
 import sys
 from pathlib import Path
@@ -147,13 +148,10 @@ def _resolve_image(img: str, data_dir: Path, out_dir: Path, inline: bool) -> str
         b64 = base64.b64encode(p.read_bytes()).decode("ascii")
         return f"data:{mime};base64,{b64}"
 
-    # 非 inline：返回相对 out 目录的相对路径
-    try:
-        rel = Path.relative_to(p, out_dir)
-        return str(rel).replace("\\", "/")
-    except ValueError:
-        # 不在 out 子树下，退化成绝对路径
-        return f"file://{p}"
+    # 非 inline：用 os.path.relpath 生成相对路径，支持 ../../ 跨目录
+    if not p.exists():
+        sys.stderr.write(f"[inject] 警告：图片不存在: {p}\n")
+    return os.path.relpath(p, out_dir).replace("\\", "/")
 
 
 def _js_escape(text: str) -> str:
