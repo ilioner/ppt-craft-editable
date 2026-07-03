@@ -6,40 +6,73 @@
 <title>Phase C — 文字编辑器</title>
 <style>
   :root {
-    --bg: #f5f1ea;
-    --panel: #ffffff;
-    --panel-strong: #fbf8f1;
-    --line: rgba(40, 30, 18, 0.12);
-    --line-strong: rgba(40, 30, 18, 0.25);
-    --text: #1a1610;
-    --muted: #6b5d4c;
-    --accent: #b9501e;
-    --accent-soft: #f4dccb;
-    --shadow: 0 14px 38px rgba(60, 35, 12, 0.10);
-    --radius-lg: 18px;
-    --radius-md: 12px;
-    --radius-sm: 8px;
+    --bg: #0d1117;
+    --bg-elevated: rgba(16, 22, 31, 0.88);
+    --bg-panel: rgba(18, 26, 37, 0.82);
+    --bg-panel-strong: rgba(10, 16, 24, 0.94);
+    --line: rgba(229, 221, 199, 0.12);
+    --line-strong: rgba(229, 221, 199, 0.24);
+    --text: #f4efe4;
+    --muted: #b7b0a0;
+    --muted-soft: #8f887c;
+    --accent: #6ec6ff;
+    --accent-strong: #95d7ff;
+    --accent-warm: #f4b860;
+    --danger: #ff8f7a;
+    --success: #4ec49a;
+    --shadow: 0 30px 80px rgba(0, 0, 0, 0.38);
+    --radius-lg: 10px;
+    --radius-md: 8px;
+    --radius-sm: 6px;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
-    font-family: "Segoe UI Variable Display", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background:
-      radial-gradient(circle at top left, rgba(255, 197, 147, 0.32), transparent 30%),
-      radial-gradient(circle at top right, rgba(130, 184, 255, 0.18), transparent 24%),
-      linear-gradient(180deg, #faf6f0 0%, var(--bg) 40%, #efe8dc 100%);
+    font-family: "Avenir Next", "PingFang SC", "Microsoft YaHei", sans-serif;
     color: var(--text);
     min-height: 100vh;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top left, rgba(110, 198, 255, 0.16), transparent 34%),
+      radial-gradient(circle at 85% 12%, rgba(244, 184, 96, 0.14), transparent 26%),
+      linear-gradient(135deg, #091019 0%, #0c131c 36%, #121a25 100%);
+    position: relative;
     padding: 18px;
+  }
+  body::before,
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::before {
+    background:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 26px 26px;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent 78%);
+  }
+  body::after {
+    opacity: 0.18;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(255,255,255,0.85) 0.7px, transparent 0.7px),
+      radial-gradient(circle at 80% 40%, rgba(255,255,255,0.5) 0.7px, transparent 0.7px),
+      radial-gradient(circle at 35% 80%, rgba(255,255,255,0.45) 0.7px, transparent 0.7px);
+    background-size: 18px 18px, 24px 24px, 22px 22px;
   }
 
   .app {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: 240px 1fr 320px;
     grid-template-rows: auto 1fr;
     gap: 14px;
     max-width: 1700px;
     margin: 0 auto;
+    height: calc(100vh - 36px);
   }
 
   /* ─── 顶栏 ─── */
@@ -50,15 +83,17 @@
     justify-content: space-between;
     gap: 14px;
     padding: 14px 18px;
-    background: var(--panel);
+    background: linear-gradient(180deg, rgba(15, 22, 31, 0.93), rgba(8, 14, 21, 0.88));
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
   }
   .topbar h1 {
     margin: 0;
     font-size: 18px;
     letter-spacing: -0.01em;
+    font-weight: 600;
   }
   .topbar .sub {
     color: var(--muted);
@@ -72,35 +107,55 @@
   }
   .btn {
     padding: 8px 14px;
-    border: 1px solid var(--line-strong);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-sm);
-    background: var(--panel-strong);
+    background: rgba(255, 255, 255, 0.04);
     color: var(--text);
     font-size: 13px;
     cursor: pointer;
-    transition: all 0.12s ease;
+    transition: all 0.18s ease;
+    letter-spacing: 0.02em;
   }
-  .btn:hover { background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
-  .btn.primary { background: var(--text); color: #fff7ea; border-color: var(--text); }
-  .btn.primary:hover { background: #2c2418; }
-  .btn.danger { background: #fef2ec; color: #a8421c; border-color: #f0c1a8; }
+  .btn:hover {
+    background: rgba(110, 198, 255, 0.12);
+    border-color: rgba(110, 198, 255, 0.34);
+    transform: translateY(-1px);
+  }
+  .btn.primary {
+    background: linear-gradient(135deg, #8fd7ff, #5ba9ff);
+    color: #0b1521;
+    border: none;
+    font-weight: 700;
+    box-shadow: 0 18px 34px rgba(91, 169, 255, 0.22);
+  }
+  .btn.primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 22px 38px rgba(91, 169, 255, 0.28);
+    filter: brightness(1.05);
+  }
+  .btn.danger {
+    background: rgba(255, 143, 122, 0.14);
+    color: #ffd0c8;
+    border-color: rgba(255, 143, 122, 0.24);
+  }
 
   /* ─── 左侧页面列表 ─── */
   .pages {
-    background: var(--panel);
+    background: linear-gradient(180deg, rgba(12, 18, 26, 0.96), rgba(8, 12, 18, 0.94));
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     padding: 14px;
     box-shadow: var(--shadow);
-    max-height: calc(100vh - 110px);
+    backdrop-filter: blur(18px);
     overflow-y: auto;
   }
   .pages h2 {
     margin: 0 0 12px;
-    font-size: 13px;
+    font-size: 10px;
     color: var(--muted);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
+    font-weight: 700;
   }
   .page-item {
     padding: 10px 12px;
@@ -112,49 +167,60 @@
     gap: 8px;
     border: 1px solid transparent;
     margin-bottom: 4px;
+    background: rgba(255, 255, 255, 0.02);
+    transition: all 0.18s ease;
   }
-  .page-item:hover { background: var(--panel-strong); }
+  .page-item:hover {
+    background: rgba(110, 198, 255, 0.08);
+    border-color: rgba(110, 198, 255, 0.18);
+  }
   .page-item.active {
-    background: var(--accent-soft);
-    border-color: rgba(185, 80, 30, 0.25);
-    color: #6b2a08;
+    background: rgba(244, 184, 96, 0.18);
+    border-color: rgba(244, 184, 96, 0.36);
+    color: #ffd59a;
   }
   .page-item .num {
-    background: rgba(0,0,0,0.06);
+    background: rgba(255, 255, 255, 0.08);
     border-radius: 999px;
     padding: 2px 8px;
     font-size: 11px;
     font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+  .page-item.active .num {
+    background: rgba(244, 184, 96, 0.24);
+    color: #ffd59a;
   }
 
   /* ─── 中间画布 ─── */
   .canvas-wrap {
-    background: var(--panel);
+    background: linear-gradient(180deg, rgba(15, 22, 31, 0.93), rgba(8, 14, 21, 0.88));
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
-    padding: 18px;
+    padding: 12px 18px 18px;
     box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    min-height: 60vh;
+    justify-content: flex-start;
+    overflow-y: auto;
   }
   .canvas-wrap .hint {
     color: var(--muted);
     font-size: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .canvas {
     position: relative;
-    background: #2a2218;
+    background: #1a1a1a;
     border-radius: var(--radius-md);
     overflow: hidden;
     aspect-ratio: 16 / 9;
     width: 100%;
     max-width: 1100px;
-    box-shadow: 0 10px 26px rgba(0,0,0,0.18);
-    /* 关键：所有子元素用 fraction 定位 */
+    box-shadow: 0 28px 60px rgba(0, 0, 0, 0.48);
+    border: 1px solid rgba(255, 255, 255, 0.06);
   }
   .canvas .bg-img {
     position: absolute;
@@ -162,7 +228,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    pointer-events: none;  /* 背景不接收事件 */
+    pointer-events: none;
     user-select: none;
   }
   .text-box {
@@ -171,32 +237,33 @@
     border-radius: 4px;
     padding: 4px;
     cursor: move;
-    color: #1a1a1a;
+    color: #f4efe4;
     overflow: hidden;
-    transition: border-color 0.1s ease, background 0.1s ease;
+    transition: border-color 0.2s ease, background 0.2s ease;
     word-wrap: break-word;
     white-space: pre-wrap;
   }
   .text-box:hover {
-    border-color: rgba(185, 80, 30, 0.45);
-    background: rgba(255, 252, 245, 0.55);
+    border-color: rgba(110, 198, 255, 0.6);
+    background: rgba(110, 198, 255, 0.08);
   }
   .text-box.selected {
-    border-color: rgba(185, 80, 30, 0.85);
-    background: rgba(255, 251, 240, 0.72);
-    box-shadow: 0 0 0 3px rgba(185, 80, 30, 0.12);
+    border-color: rgba(244, 184, 96, 0.85);
+    background: rgba(244, 184, 96, 0.12);
+    box-shadow: 0 0 0 3px rgba(244, 184, 96, 0.18);
   }
   .text-box[contenteditable="true"] {
     cursor: text;
     outline: none;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(110, 198, 255, 0.8);
   }
   .resize-handle {
     position: absolute;
     width: 12px;
     height: 12px;
     background: var(--accent);
-    border: 1.5px solid #fff;
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
     border-radius: 2px;
     cursor: nwse-resize;
     z-index: 5;
@@ -225,7 +292,7 @@
   .canvas.review-mode .text-box {
     pointer-events: none;
     cursor: default;
-    opacity: 0.78;
+    opacity: 0.6;
   }
   .canvas.review-mode .resize-handle { display: none; }
   .review-canvas {
@@ -253,80 +320,101 @@
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: var(--accent);
-    color: #fff;
+    background: var(--accent-warm);
+    color: #1a1410;
     display: grid;
     place-items: center;
     font-size: 12px;
     font-weight: 800;
-    box-shadow: 0 6px 14px rgba(54,32,10,.24);
+    box-shadow: 0 8px 20px rgba(244, 184, 96, 0.4);
   }
   .mode-toolbar {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-    padding: 8px 12px;
-    background: var(--panel-strong);
+    gap: 8px;
+    margin-bottom: 6px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 8px;
     flex-wrap: wrap;
+    backdrop-filter: blur(8px);
+    min-height: 36px;
   }
   .mode-toolbar .tool-chip {
-    padding: 6px 12px;
+    padding: 4px 10px;
     border-radius: 999px;
-    border: 1px solid var(--line-strong);
-    background: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
     cursor: pointer;
-    font-size: 12px;
+    font-size: 11px;
+    transition: all 0.18s ease;
+  }
+  .mode-toolbar .tool-chip:hover {
+    background: rgba(110, 198, 255, 0.12);
+    border-color: rgba(110, 198, 255, 0.24);
   }
   .mode-toolbar .tool-chip.active {
-    background: var(--text);
-    color: #fff7ea;
-    border-color: var(--text);
+    background: linear-gradient(135deg, #8fd7ff, #5ba9ff);
+    color: #0b1521;
+    border: none;
+    font-weight: 700;
   }
   .mode-toolbar .inline-field {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: 11px;
+  }
+  .mode-toolbar .inline-field input[type="range"] {
+    width: 60px;
+  }
+  .mode-toolbar .inline-field input[type="color"] {
+    width: 28px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    cursor: pointer;
   }
   .mode-toolbar .review-only { display: none; }
   .mode-toolbar[data-mode='review'] .review-only { display: inline-flex; }
   .mode-toolbar[data-mode='review'] .text-only { display: none; }
   .page-item .badge {
     margin-left: auto;
-    background: var(--accent-soft);
-    color: #6b2a08;
+    background: rgba(244, 184, 96, 0.24);
+    color: #ffd59a;
     border-radius: 999px;
-    padding: 1px 7px;
-    font-size: 11px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 700;
   }
 
   /* ─── 右侧属性面板 ─── */
   .props {
-    background: var(--panel);
+    background: linear-gradient(180deg, rgba(12, 19, 28, 0.94), rgba(8, 13, 20, 0.92));
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     padding: 16px;
     box-shadow: var(--shadow);
-    max-height: calc(100vh - 110px);
+    backdrop-filter: blur(18px);
     overflow-y: auto;
   }
   .props h2 {
     margin: 0 0 12px;
-    font-size: 13px;
+    font-size: 10px;
     color: var(--muted);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
+    font-weight: 700;
   }
   .props .empty {
     color: var(--muted);
     font-size: 13px;
     padding: 12px;
-    background: var(--panel-strong);
+    background: rgba(255, 255, 255, 0.02);
     border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.04);
   }
   .field {
     margin-bottom: 10px;
@@ -340,11 +428,19 @@
   .field input, .field select, .field textarea {
     width: 100%;
     padding: 7px 9px;
-    border: 1px solid var(--line-strong);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 6px;
     font-size: 13px;
-    background: #fff;
+    background: rgba(5, 10, 16, 0.56);
+    color: var(--text);
     font-family: inherit;
+    transition: all 0.18s ease;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none;
+    border-color: rgba(110, 198, 255, 0.46);
+    background: rgba(8, 14, 22, 0.76);
+    box-shadow: 0 0 0 4px rgba(110, 198, 255, 0.08);
   }
   .field textarea {
     min-height: 60px;
@@ -368,15 +464,22 @@
     flex: 1;
     padding: 7px 8px;
     font-size: 12px;
-    background: #fff;
-    border: 1px solid var(--line-strong);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 6px;
     cursor: pointer;
+    color: var(--text);
+    transition: all 0.18s ease;
+  }
+  .toggle-group button:hover {
+    background: rgba(110, 198, 255, 0.12);
+    border-color: rgba(110, 198, 255, 0.24);
   }
   .toggle-group button.active {
-    background: var(--text);
-    color: #fff7ea;
-    border-color: var(--text);
+    background: linear-gradient(135deg, #8fd7ff, #5ba9ff);
+    color: #0b1521;
+    border: none;
+    font-weight: 700;
   }
   .props-section {
     border-top: 1px solid var(--line);
@@ -403,8 +506,8 @@
   .modal {
     position: fixed;
     inset: 0;
-    background: rgba(20, 14, 8, 0.6);
-    backdrop-filter: blur(6px);
+    background: rgba(8, 12, 18, 0.85);
+    backdrop-filter: blur(12px);
     display: none;
     align-items: center;
     justify-content: center;
@@ -413,17 +516,19 @@
   }
   .modal.open { display: flex; }
   .modal-panel {
-    background: #fff;
+    background: linear-gradient(180deg, rgba(15, 22, 31, 0.98), rgba(10, 16, 24, 0.98));
+    border: 1px solid var(--line-strong);
     border-radius: var(--radius-lg);
     padding: 24px;
     max-width: 720px;
     width: 100%;
     max-height: calc(100vh - 60px);
     overflow-y: auto;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
   }
   .modal-panel h3 {
     margin: 0 0 12px;
+    color: var(--text);
   }
   .modal-panel textarea {
     width: 100%;
@@ -431,9 +536,10 @@
     font-family: "Menlo", "Consolas", monospace;
     font-size: 12px;
     padding: 12px;
-    border: 1px solid var(--line-strong);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
-    background: #fafaf6;
+    background: rgba(5, 10, 16, 0.76);
+    color: var(--text);
   }
   .modal-panel .row {
     display: flex;
@@ -445,6 +551,39 @@
     color: var(--muted);
     font-size: 12px;
     margin-bottom: 8px;
+    line-height: 1.6;
+  }
+  .modal-panel ul {
+    color: var(--text);
+  }
+  .modal-panel ul li {
+    margin-bottom: 8px;
+  }
+  #ioBigCopyHint {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    background: rgba(244, 184, 96, 0.12);
+    border: 1px solid rgba(244, 184, 96, 0.24);
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #ffd59a;
+  }
+  #ioBigCopyHint b {
+    color: var(--accent-warm);
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
   }
 </style>
 </head>
@@ -472,15 +611,15 @@
     <main class="canvas-wrap">
       <!-- 模式工具栏：文字模式 / 背景反馈模式共用，通过 data-mode 切换显示 -->
       <div class="mode-toolbar" id="modeToolbar" data-mode="text">
-        <span class="text-only" style="font-size:12px;color:var(--muted);">文字编辑模式 — 单击选中文字框，双击编辑</span>
-        <span class="review-only inline-field" style="font-weight:600;font-size:13px;">背景反馈模式</span>
-        <button class="tool-chip review-only active" data-rtool="rect">矩形框选</button>
+        <span class="text-only" style="font-size:11px;color:var(--muted);">文字编辑 — 单击选中，双击编辑</span>
+        <span class="review-only inline-field" style="font-weight:600;font-size:12px;">背景反馈</span>
+        <button class="tool-chip review-only active" data-rtool="rect">矩形</button>
         <button class="tool-chip review-only" data-rtool="pen">画笔</button>
-        <button class="tool-chip review-only" data-rtool="note">注释点</button>
+        <button class="tool-chip review-only" data-rtool="note">注释</button>
         <label class="review-only inline-field">线宽 <input type="range" min="2" max="14" value="4" id="rStrokeWidth"></label>
-        <label class="review-only inline-field">颜色 <input type="color" value="#b9501e" id="rStrokeColor"></label>
-        <button class="btn review-only" id="rUndo" style="padding:5px 10px;font-size:12px;">撤销</button>
-        <button class="btn review-only" id="rClearPage" style="padding:5px 10px;font-size:12px;">清空本页</button>
+        <label class="review-only inline-field">颜色 <input type="color" value="#f4b860" id="rStrokeColor"></label>
+        <button class="btn review-only" id="rUndo" style="padding:4px 8px;font-size:11px;">撤销</button>
+        <button class="btn review-only" id="rClearPage" style="padding:4px 8px;font-size:11px;">清空</button>
       </div>
       <div class="canvas" id="canvas">
         <!-- 背景反馈画布（持久存在，不被 renderCanvas 清除）-->

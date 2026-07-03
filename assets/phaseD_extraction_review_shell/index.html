@@ -21,8 +21,8 @@
       --danger: #ff8f7a;
       --success: #4ec49a;
       --shadow: 0 30px 80px rgba(0, 0, 0, 0.38);
-      --panel-radius: 28px;
-      --inner-radius: 22px;
+      --panel-radius: 10px;
+      --inner-radius: 8px;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -68,9 +68,102 @@
       height: 100vh;
       padding: 18px;
     }
+    /* 缩略图侧边栏 */
+    .thumbnail-sidebar {
+      width: 140px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, rgba(12, 18, 26, 0.96), rgba(8, 12, 18, 0.94));
+      border: 1px solid var(--line);
+      border-radius: var(--panel-radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+    .thumbnail-sidebar-header {
+      padding: 16px 12px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.02), transparent),
+        rgba(10, 15, 22, 0.76);
+      border-bottom: 1px solid var(--line);
+    }
+    .thumbnail-sidebar-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      text-align: center;
+    }
+    .thumbnail-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 10px;
+    }
+    .thumbnail-item {
+      position: relative;
+      margin-bottom: 12px;
+      cursor: pointer;
+      border-radius: 12px;
+      overflow: hidden;
+      background: rgba(18, 26, 36, 0.62);
+      border: 2px solid rgba(255, 255, 255, 0.06);
+      transition: all 0.22s ease;
+    }
+    .thumbnail-item:hover {
+      border-color: rgba(110, 198, 255, 0.28);
+      transform: translateX(2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+    }
+    .thumbnail-item.active {
+      border-color: rgba(244, 184, 96, 0.72);
+      background: rgba(42, 33, 19, 0.46);
+      box-shadow: 0 0 0 1px rgba(244, 184, 96, 0.18), 0 10px 24px rgba(0, 0, 0, 0.32);
+    }
+    .thumbnail-image {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      display: block;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .thumbnail-label {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      background: rgba(8, 14, 21, 0.94);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 3px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 999px;
+      letter-spacing: 0.06em;
+    }
+    .thumbnail-item.active .thumbnail-label {
+      background: rgba(244, 184, 96, 0.92);
+      color: #1a1410;
+      border-color: rgba(244, 184, 96, 0.24);
+    }
+    .thumbnail-type-badge {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(8, 14, 21, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted-soft);
+    }
     /* 左侧原图预览 */
     .preview-pane {
-      width: 52%;
+      flex: 1;
+      min-width: 0;
       display: flex;
       flex-direction: column;
       background: linear-gradient(180deg, rgba(15, 22, 31, 0.93), rgba(8, 14, 21, 0.88));
@@ -191,7 +284,8 @@
     }
     /* 右侧编辑面板 */
     .editor-pane {
-      width: 48%;
+      width: 420px;
+      flex-shrink: 0;
       display: flex;
       flex-direction: column;
       background: linear-gradient(180deg, rgba(12, 19, 28, 0.94), rgba(8, 13, 20, 0.92));
@@ -417,11 +511,13 @@
     }
     .preview-pane,
     .editor-pane,
+    .thumbnail-sidebar,
     .text-box-item,
     .preview-canvas {
       animation: rise-in 0.55s ease both;
     }
-    .editor-pane { animation-delay: 0.06s; }
+    .preview-pane { animation-delay: 0.04s; }
+    .editor-pane { animation-delay: 0.08s; }
     @keyframes rise-in {
       from {
         opacity: 0;
@@ -440,6 +536,27 @@
         height: auto;
         min-height: 100vh;
         flex-direction: column;
+      }
+      .thumbnail-sidebar {
+        width: 100%;
+        flex-direction: row;
+        height: auto;
+      }
+      .thumbnail-sidebar-header {
+        display: none;
+      }
+      .thumbnail-list {
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 10px;
+      }
+      .thumbnail-item {
+        flex-shrink: 0;
+        width: 100px;
+        margin-right: 10px;
+        margin-bottom: 0;
       }
       .preview-pane,
       .editor-pane {
@@ -482,6 +599,16 @@
 </head>
 <body>
   <div class="app">
+    <!-- 缩略图侧边栏 -->
+    <div class="thumbnail-sidebar">
+      <div class="thumbnail-sidebar-header">
+        <div class="thumbnail-sidebar-title">Pages</div>
+      </div>
+      <div class="thumbnail-list" id="thumbnailList">
+        <!-- 动态生成缩略图 -->
+      </div>
+    </div>
+
     <!-- 左侧：原图预览 + 文本框 overlay -->
     <div class="preview-pane">
       <div class="preview-header">
@@ -669,8 +796,54 @@
     function init() {
       extractionData = loadExtractionData();
       extractionData.pages = (extractionData.pages || []).map((page, index) => normalizePage(page, index));
+      renderThumbnails();
       renderPage(currentPageIndex);
       setupEventListeners();
+    }
+
+    // 渲染缩略图列表
+    function renderThumbnails() {
+      const list = document.getElementById('thumbnailList');
+      list.innerHTML = '';
+
+      extractionData.pages.forEach((page, index) => {
+        const item = document.createElement('div');
+        item.className = 'thumbnail-item';
+        if (index === currentPageIndex) item.classList.add('active');
+        item.dataset.pageIndex = index;
+
+        const img = document.createElement('img');
+        img.className = 'thumbnail-image';
+        img.src = sanitizeImageSource(page.page_image);
+        img.alt = `Page ${page.page_index}`;
+
+        const label = document.createElement('div');
+        label.className = 'thumbnail-label';
+        label.textContent = page.page_index;
+
+        const typeBadge = document.createElement('div');
+        typeBadge.className = 'thumbnail-type-badge';
+        typeBadge.textContent = page.page_type;
+
+        item.appendChild(img);
+        item.appendChild(label);
+        item.appendChild(typeBadge);
+
+        item.addEventListener('click', () => {
+          currentPageIndex = index;
+          renderPage(currentPageIndex);
+          updateThumbnailActive();
+        });
+
+        list.appendChild(item);
+      });
+    }
+
+    // 更新缩略图激活状态
+    function updateThumbnailActive() {
+      document.querySelectorAll('.thumbnail-item').forEach((el, index) => {
+        el.classList.toggle('active', index === currentPageIndex);
+      });
     }
 
     // 渲染当前页面
@@ -817,6 +990,7 @@
         if (currentPageIndex > 0) {
           currentPageIndex--;
           renderPage(currentPageIndex);
+          updateThumbnailActive();
         }
       });
 
@@ -824,6 +998,7 @@
         if (currentPageIndex < extractionData.pages.length - 1) {
           currentPageIndex++;
           renderPage(currentPageIndex);
+          updateThumbnailActive();
         }
       });
 
