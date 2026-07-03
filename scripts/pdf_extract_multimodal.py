@@ -107,7 +107,8 @@ def render_page_to_image(page: fitz.Page, output_path: Path, dpi: int = 150) -> 
 
 
 def relative_phase_d_asset(output_json: Path, asset_path: Path) -> str:
-    return str(asset_path.resolve().relative_to(output_json.parent.resolve()))
+    import os
+    return os.path.relpath(asset_path.resolve(), output_json.parent.resolve()).replace("\\", "/")
 
 
 def generate_multimodal_prompt(page_index: int) -> str:

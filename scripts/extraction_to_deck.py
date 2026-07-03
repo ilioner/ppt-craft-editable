@@ -232,10 +232,8 @@ def normalize_bbox_norm(raw_bbox: Any) -> list[float]:
 
 
 def relative_background_ref(deck_dir: Path, background_path: Path) -> str:
-    try:
-        return str(background_path.resolve().relative_to(deck_dir.resolve()))
-    except ValueError:
-        return str(background_path.resolve())
+    import os
+    return os.path.relpath(background_path.resolve(), deck_dir.resolve()).replace("\\", "/")
 
 
 def write_editor(shell_path: Path, deck_path: Path, out_path: Path, mode: str) -> None:

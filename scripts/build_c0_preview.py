@@ -124,10 +124,8 @@ def rewrite_relative_backgrounds(deck: dict, source_dir: Path, out_dir: Path) ->
         if is_nonlocal_or_absolute_ref(bg):
             continue
         absolute_bg = (source_dir / bg).resolve()
-        try:
-            slide["background"] = str(absolute_bg.relative_to(out_dir))
-        except ValueError:
-            slide["background"] = str(absolute_bg)
+        import os
+        slide["background"] = os.path.relpath(absolute_bg, out_dir).replace("\\", "/")
     return rewritten
 
 

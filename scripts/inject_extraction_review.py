@@ -10,6 +10,7 @@ Phase D - 注入 extraction.json 到 extraction review shell
 """
 
 import argparse
+import os
 import re
 from pathlib import Path
 import sys
@@ -32,10 +33,7 @@ def rewrite_review_asset_paths(extraction_data: dict, data_path: Path, output_pa
         page_image = page.get("page_image")
         if isinstance(page_image, str) and page_image and not page_image.startswith("data:"):
             resolved = resolve_asset_path(page_image, data_path)
-            try:
-                page["page_image"] = str(resolved.relative_to(output_path.parent.resolve()))
-            except ValueError:
-                page["page_image"] = str(resolved)
+            page["page_image"] = os.path.relpath(resolved, output_path.parent.resolve()).replace("\\", "/")
     return extraction_data
 
 
