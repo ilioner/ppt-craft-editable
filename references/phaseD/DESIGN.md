@@ -260,10 +260,12 @@ python3 scripts/inject_extraction_review.py \
 
 **实现**：
 1. 把当前页作为视觉参考（view_image）
-2. 指示模型生成"同布局、同氛围、无任何文字"的背景
+2. 通过 imagegen 生成"同布局、同氛围、完全无字符"的背景
 3. 类似 Phase C 的背景重建流程
 
 **优点**：适合图片型 PPT，背景干净
+
+> imagegen 的完整 prompt 模板见 `references/phaseD/workflow.md` 的 “Rebuild imagegen 提示词模板” 段。该模板把"不允许出现任何字符"作为负面清单逐条明写（标题/正文/页码/页脚/水印/logo 里的字/装饰艺术字/假字块），是 Phase D 里防止背景残字的核心防线，不要压缩或口头改写。
 
 ---
 
